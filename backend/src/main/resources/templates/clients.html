@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html class="light" lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>EasyTraza - Gestión de Clientes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100;300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+                "surface-dim": "#e1d9cb", "tertiary": "#006290", "inverse-on-surface": "#f8f0e1",
+                "on-tertiary-fixed-variant": "#004b70", "background": "#fff8ef", "on-primary-fixed": "#321200",
+                "secondary": "#934b19", "primary-container": "#bb5808", "tertiary-fixed": "#cae6ff",
+                "outline": "#8a7266", "error": "#ba1a1a", "surface-container-lowest": "#ffffff",
+                "on-secondary-fixed": "#321200", "surface-container-low": "#fbf3e4", "inverse-primary": "#ffb68d",
+                "surface-container": "#f5edde", "on-primary": "#ffffff", "error-container": "#ffdad6",
+                "on-tertiary-fixed": "#001e30", "on-surface-variant": "#564338", "on-surface": "#1e1b13",
+                "tertiary-container": "#007bb5", "primary-fixed": "#ffdbc9", "surface-tint": "#9a4600",
+                "outline-variant": "#ddc1b3", "on-secondary": "#ffffff", "surface": "#fff8ef",
+                "secondary-container": "#ffa26a", "on-error-container": "#93000a", "tertiary-fixed-dim": "#8dcdff",
+                "on-primary-fixed-variant": "#763400", "surface-variant": "#e9e2d3", "surface-container-high": "#efe7d9",
+                "primary-fixed-dim": "#ffb68d", "secondary-fixed-dim": "#ffb68c", "secondary-fixed": "#ffdbc9",
+                "on-secondary-container": "#783603", "surface-bright": "#fff8ef", "on-primary-container": "#fffbff",
+                "surface-container-highest": "#e9e2d3", "on-tertiary": "#ffffff", "primary": "#974400",
+                "on-secondary-fixed-variant": "#753401", "on-error": "#ffffff", "on-background": "#1e1b13",
+                "inverse-surface": "#343026", "on-tertiary-container": "#fcfcff"
+            },
+            fontFamily: { headline: ["Lexend"], display: ["Lexend"], body: ["Lexend"], label: ["Lexend"] }
+          }
+        }
+      }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; display: inline-block; vertical-align: middle; }
+        body { font-family: 'Lexend', sans-serif; }
+        .materia-card:hover .action-btn { opacity: 1; }
+        #clientModal { display: none; }
+        #clientModal.active { display: flex; }
+        .nav-scroll::-webkit-scrollbar { display: none; }
+        .nav-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex overflow-x-hidden relative">
+
+    <div th:replace="~{fragments/navbar :: menu-lateral('clients')}"></div>
+
+    <main class="flex-1 md:ml-80 flex flex-col min-h-screen transition-all duration-300">
+        <div class="p-6 md:p-8 lg:px-16 lg:py-8 w-full">
+            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-8">
+                <div>
+                    <div class="flex items-center gap-3 text-primary mb-2">
+                        <span class="material-symbols-outlined">person</span>
+                        <span class="uppercase tracking-[0.3em] text-xs font-black" th:text="#{clients.subtitle}">Administración Comercial</span>
+                    </div>
+                    <h1 class="font-black text-4xl lg:text-5xl text-on-surface tracking-tight" th:text="#{clients.title}">Gestión de Clientes</h1>
+                </div>
+                <button onclick="abrirModalCrear()" class="bg-gradient-to-br from-primary to-primary-container text-on-primary h-16 px-8 rounded-2xl flex items-center justify-center gap-3 font-bold text-lg shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                    <span class="material-symbols-outlined text-2xl">add</span> <span th:text="#{clients.add_btn}">Añadir Cliente</span>
+                </button>
+            </div>
+
+            <div th:if="${error}" class="bg-error-container text-on-error-container p-4 rounded-2xl mb-8 font-bold flex items-center gap-2 border border-error/20">
+                <span class="material-symbols-outlined">warning</span> <span th:text="${error}"></span>
+            </div>
+            <div th:if="${success}" class="bg-[#d4edda] text-[#155724] p-4 rounded-2xl mb-8 font-bold flex items-center gap-2">
+                <span class="material-symbols-outlined">check_circle</span> <span th:text="${success}"></span>
+            </div>
+
+            <div class="mb-12">
+                <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-outline-variant group-focus-within:text-primary transition-colors z-10">search</span>
+                    <input id="buscadorClientes" class="w-full h-16 pl-16 pr-16 bg-surface-container-low border-none rounded-2xl focus:ring-2 focus:ring-primary text-lg font-medium placeholder:text-outline/50 transition-all outline-none" th:placeholder="#{clients.search_placeholder}" type="text"/>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(clients)}" class="bg-surface-container-highest p-12 rounded-3xl text-center border-2 border-dashed border-outline-variant">
+                <span class="material-symbols-outlined text-6xl text-on-surface-variant mb-4">person_off</span>
+                <h3 class="text-2xl font-black text-on-surface mb-2" th:text="#{clients.empty.title}">No hay clientes registrados</h3>
+                <p class="text-on-surface-variant font-medium" th:text="#{clients.empty.subtitle}">Añade tu primer cliente utilizando el botón superior.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div th:each="client : ${clients}" class="materia-card bg-surface-container-lowest p-8 rounded-3xl shadow-sm border border-black/5 hover:shadow-xl hover:shadow-primary/5 transition-all group">
+                    <div class="flex items-start justify-between mb-6">
+                        <div class="w-16 h-16 rounded-2xl bg-secondary-container text-on-secondary-container flex items-center justify-center text-2xl font-black uppercase" 
+                             th:text="${#strings.substring(client.nom, 0, 1)}">C</div>
+                        <div class="flex gap-2 opacity-0 action-btn transition-opacity duration-300">
+                            <button th:onclick="abrirModalEditar([[${client.nif}]], [[${client.nom}]], [[${client.cognoms}]], [[${client.adreca}]], [[${client.email}]], [[${client.telefon}]], [[${client.observacions}]])" 
+                                    class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:bg-primary-fixed hover:text-on-primary-fixed transition-colors" th:title="#{clients.card.edit}">
+                                <span class="material-symbols-outlined text-xl">edit</span>
+                            </button>
+                            <form th:action="@{/admin/clients/delete}" method="post" class="m-0">
+                                <input type="hidden" name="nif" th:value="${client.nif}"/>
+                                <button type="submit" th:onclick="'return confirm(\'' + #{clients.delete.confirm} + '\');'" class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-error hover:bg-error-container transition-colors" th:title="#{clients.card.delete}">
+                                    <span class="material-symbols-outlined text-xl">delete</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-black text-on-surface mb-2" th:text="${client.nom + ' ' + client.cognoms}">Nombre Cliente</h3>
+                        <p class="text-xs text-on-surface-variant font-bold tracking-widest mb-4 uppercase" th:text="'NIF: ' + ${client.nif}">NIF: 12345678A</p>
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2 text-on-surface-variant">
+                                <span class="material-symbols-outlined text-sm">call</span>
+                                <span class="text-sm font-medium" th:text="${client.telefon}">+34 000000000</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-on-surface-variant">
+                                <span class="material-symbols-outlined text-sm">mail</span>
+                                <span class="text-sm font-medium" th:text="${client.email}">correo@correo.com</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-on-surface-variant">
+                                <span class="material-symbols-outlined text-sm">location_on</span>
+                                <span class="text-sm font-medium" th:text="${client.adreca}">Dirección</span>
+                            </div>
+                            <div th:if="${client.observacions != null and !client.observacions.empty}" class="flex items-center gap-2 text-primary mt-2">
+                                <span class="material-symbols-outlined text-sm">notes</span>
+                                <span class="text-xs font-bold uppercase tracking-wider" th:text="${client.observacions}">Obs</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-12 bg-surface-container-highest rounded-2xl p-6 flex items-center gap-6 border border-outline-variant/20">
+                <div class="text-center">
+                    <p class="text-[0.6rem] font-bold tracking-[0.2em] text-outline uppercase mb-1" th:text="#{clients.total}">Total Clientes</p>
+                    <p class="text-4xl font-black text-primary" th:text="${#lists.size(clients)}">0</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="clientModal" class="fixed inset-0 z-50 bg-on-background/40 backdrop-blur-sm items-center justify-center p-4">
+        <div class="bg-surface-container-lowest rounded-[2rem] p-8 max-w-2xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button type="button" onclick="cerrarModal()" class="absolute top-6 right-6 text-on-surface-variant hover:text-error transition-colors">
+                <span class="material-symbols-outlined text-3xl">close</span>
+            </button>
+            <h2 id="modalTitle" class="text-3xl font-black text-primary mb-6" th:text="#{clients.modal.create_title}">Añadir Nuevo Cliente</h2>
+            <form id="clientForm" th:action="@{/admin/clients/save}" method="post" class="space-y-4">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold uppercase tracking-wider text-on-surface-variant" th:text="#{clients.form.nif}">NIF *</label>
+                        <input type="text" id="nifInput" name="nif" required class="h-14 bg-surface-container-highest border-none rounded-xl px-4 font-semibold focus:ring-2 focus:ring-primary outline-none uppercase"/>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold uppercase tracking-wider text-on-surface-variant" th:text="#{clients.form.obs}">Observacions</label>
+                        <input type="text" id="obsInput" name="observacions" class="h-14 bg-surface-container-highest border-none rounded-xl px-4 font-semibold focus:ring-2 focus:ring-primary outline-none"/>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold uppercase tracking-wider text-on-surface-variant" th:text="#{clients.form.name}">Nombre *</label>
+                        <input type="text" id="nomInput" name="nom" required class="h-14 bg-surface-container-highest border-none rounded-xl px-4 font-semibold focus:ring-2 focus:ring-primary outline-none"/>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold uppercase tracking-wider text-on-surface-variant" th:text="#{clients.form.surname}">Apellidos *</label>
+                        <input type="text" id="cognomsInput" name="cognoms" required class="h-14 bg-surface-container-highest border-none rounded-xl px-4 font-semibold focus:ring-2 focus:ring-primary outline-none"/>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-bold uppercase tracking-wider text-on-surface-variant" th:text="#{clients.form.address}">Adreça Completa *</label>
+                    <input type="text" id="adrecaInput" name="adreca" required class="h-14 bg-surface-container-highest border-none rounded-xl px-4 font-semibold focus:ring-2 focus:ring-primary outline-none"/>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold uppercase tracking-wider text-on-surface-variant" th:text="#{clients.form.email}">Correu Electrònic *</label>
+                        <input type="email" id="emailInput" name="email" required class="h-14 bg-surface-container-highest border-none rounded-xl px-4 font-semibold focus:ring-2 focus:ring-primary outline-none"/>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold uppercase tracking-wider text-on-surface-variant" th:text="#{clients.form.phone}">Telèfon (9 dígits) *</label>
+                        <input type="text" id="telefonInput" name="telefon" required pattern="[0-9]{9}" th:title="#{clients.form.phone.title}" class="h-14 bg-surface-container-highest border-none rounded-xl px-4 font-semibold focus:ring-2 focus:ring-primary outline-none"/>
+                    </div>
+                </div>
+                <div class="mt-8 pt-6 border-t border-outline-variant/30 flex justify-end gap-4">
+                    <button type="button" onclick="cerrarModal()" class="px-6 py-4 rounded-xl font-bold text-on-surface-variant hover:bg-surface-container-highest transition-colors" th:text="#{clients.btn.cancel}">Cancelar</button>
+                    <button type="submit" id="btnSubmit" class="px-8 py-4 rounded-xl font-bold bg-primary text-on-primary hover:bg-primary-container transition-colors shadow-lg shadow-primary/20" th:text="#{clients.btn.save}">Guardar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const modal = document.getElementById('clientModal');
+        const form = document.getElementById('clientForm');
+        const modalTitle = document.getElementById('modalTitle');
+        const nifInput = document.getElementById('nifInput');
+
+        function abrirModalCrear() {
+            modalTitle.innerText = [[#{clients.modal.create_title}]];
+            form.action = "/admin/clients/save";
+            form.reset();
+            nifInput.readOnly = false;
+            nifInput.classList.remove('opacity-50');
+            modal.classList.add('active');
+        }
+
+        function abrirModalEditar(nif, nom, cognoms, adreca, email, telefon, obs) {
+            modalTitle.innerText = [[#{clients.modal.edit_title}]];
+            form.action = "/admin/clients/update";
+            document.getElementById('nifInput').value = nif;
+            document.getElementById('nomInput').value = nom;
+            document.getElementById('cognomsInput').value = cognoms;
+            document.getElementById('adrecaInput').value = adreca;
+            document.getElementById('emailInput').value = email;
+            document.getElementById('telefonInput').value = telefon;
+            document.getElementById('obsInput').value = obs || '';
+            nifInput.readOnly = true;
+            nifInput.classList.add('opacity-50');
+            modal.classList.add('active');
+        }
+
+        function cerrarModal() {
+            modal.classList.remove('active');
+        }
+
+        document.getElementById('buscadorClientes').addEventListener('input', function(e) {
+            const textoBusqueda = e.target.value.toLowerCase();
+            const tarjetas = document.querySelectorAll('.materia-card');
+            tarjetas.forEach(tarjeta => {
+                const contenidoTarjeta = tarjeta.innerText.toLowerCase();
+                if (contenidoTarjeta.includes(textoBusqueda)) {
+                    tarjeta.style.display = '';
+                } else {
+                    tarjeta.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

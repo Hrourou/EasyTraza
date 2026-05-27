@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="menu-lateral(activa)">
+        <script>
+            // Aplicar el estado colapsado inicial lo antes posible para evitar parpadeos visuales (Layout Shift)
+            (function() {
+                const isMinimized = localStorage.getItem('sidebar_minimized') === 'true';
+                if (isMinimized && window.innerWidth >= 768) {
+                    document.documentElement.classList.add('sidebar-minimized');
+                }
+            })();
+        </script>
+
+        <style>
+            /* Transición suave para la barra lateral y el contenido principal */
+            nav {
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            }
+            
+            /* Estado colapsado (Escritorio) */
+            .sidebar-minimized nav {
+                transform: translateX(-100%) !important;
+            }
+            
+            @media (min-width: 768px) {
+                main {
+                    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                }
+                .sidebar-minimized main {
+                    margin-left: 0 !important;
+                }
+            }
+
+            /* Responsive para Móvil (pantallas < 768px) */
+            @media (max-width: 767.98px) {
+                nav {
+                    display: flex !important; /* Forzar flex para que la transición funcione */
+                    transform: translateX(-100%);
+                }
+                nav.mobile-active {
+                    transform: translateX(0) !important;
+                }
+            }
+
+            /* Personalización de barra de scroll */
+            .nav-scroll-visible::-webkit-scrollbar { width: 6px; }
+            .nav-scroll-visible::-webkit-scrollbar-track { background: transparent; }
+            .nav-scroll-visible::-webkit-scrollbar-thumb { background-color: rgba(151, 68, 0, 0.3); border-radius: 10px; }
+            .nav-scroll-visible::-webkit-scrollbar-thumb:hover { background-color: rgba(151, 68, 0, 0.6); }
+        </style>
+
+        <nav class="hidden md:flex bg-[#F5E6D3] shadow-2xl shadow-[#974400]/5 fixed left-0 top-0 h-screen w-80 rounded-r-3xl z-40 flex-col border-r-0">
+
+        <!-- Cabecera del Menú con Logotipo Centrado -->
+        <div class="px-6 pb-2 pt-6 flex justify-center">
+            <img th:src="@{/images/logoEasyTraza.png}" alt="EasyTraza Logo" class="w-44 h-auto object-contain">
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-4 space-y-1 py-2 nav-scroll-visible relative z-0">
+            
+            <!-- ═══ SOLO ADMIN ═══ -->
+            <a th:if="${usuariLoguejat != null and usuariLoguejat.rol.name() == 'ADMIN'}"
+               th:href="@{/admin/usuaris}" 
+               th:classappend="${activa == 'usuaris' ? 'bg-[#974400] text-white shadow-lg' : 'text-stone-600 hover:bg-stone-100'}"
+               class="rounded-xl mx-2 my-1 px-4 py-3 flex items-center gap-4 hover:translate-x-1 transition-all font-medium text-lg">
+                <span class="material-symbols-outlined" th:style="${activa == 'usuaris' ? 'font-variation-settings: ''FILL'' 1;' : ''}">group</span> <span th:text="#{navbar.users}">Usuarios</span>
+            </a>
+            
+            <a th:if="${usuariLoguejat != null and usuariLoguejat.rol.name() == 'ADMIN'}"
+               th:href="@{/admin/clients}" 
+               th:classappend="${activa == 'clients' ? 'bg-[#974400] text-white shadow-lg' : 'text-stone-600 hover:bg-stone-100'}"
+               class="rounded-xl mx-2 my-1 px-4 py-3 flex items-center gap-4 hover:translate-x-1 transition-all font-medium text-lg">
+                <span class="material-symbols-outlined" th:style="${activa == 'clients' ? 'font-variation-settings: ''FILL'' 1;' : ''}">person</span> <span th:text="#{navbar.clients}">Clientes</span>
+            </a>
+
+            <a th:if="${usuariLoguejat != null and usuariLoguejat.rol.name() == 'ADMIN'}"
+               th:href="@{/admin/catalogo/materias}" 
+               th:classappend="${activa == 'materias' ? 'bg-[#974400] text-white shadow-lg' : 'text-stone-600 hover:bg-stone-100'}"
+               class="rounded-xl mx-2 my-1 px-4 py-3 flex items-center gap-4 hover:translate-x-1 transition-all font-medium text-lg">
+                <span class="material-symbols-outlined" th:style="${activa == 'materias' ? 'font-variation-settings: ''FILL'' 1;' : ''}">grain</span> <span th:text="#{navbar.raw_materials}">Materias Primas</span>
+            </a>
+
+            <a th:if="${usuariLoguejat != null and usuariLoguejat.rol.name() == 'ADMIN'}"
+               th:href="@{/admin/catalogo/productos}" 
+               th:classappend="${activa == 'productos' ? 'bg-[#974400] text-white shadow-lg' : 'text-stone-600 hover:bg-stone-100'}"
+               class="rounded-xl mx-2 my-1 px-4 py-3 flex items-center gap-4 hover:translate-x-1 transition-all font-medium text-lg">
+                <span class="material-symbols-outlined" th:style="${activa == 'productos' ? 'font-variation-settings: ''FILL'' 1;' : ''}">bakery_dining</span> <span th:text="#{navbar.final_products}">Productos Finales</span>
+            </a>
+
+            <a th:if="${usuariLoguejat != null and usuariLoguejat.rol.name() == 'ADMIN'}"
+               th:href="@{/proveidors}" 
+               th:classappend="${activa == 'proveidors' ? 'bg-[#974400] text-white shadow-lg' : 'text-stone-600 hover:bg-stone-100'}"
+               class="rounded-xl mx-2 my-1 px-4 py-3 flex items-center gap-4 hover:translate-x-1 transition-all font-medium text-lg">
+                <span class="material-symbols-outlined" th:style="${activa == 'proveidors' ? 'font-variation-settings: ''FILL'' 1;' : ''}">factory</span> <span th:text="#{navbar.providers}">Proveedores</span>
+            </a>
+
+            <!-- ═══ TODOS (ADMIN + TREBALLADOR) ═══ -->
+            <a th:href="@{/recepcio}" 
+               th:classappend="${activa == 'recepcio' ? 'bg-[#974400] text-white shadow-lg' : 'text-stone-600 hover:bg-stone-100'}"
+               class="rounded-xl mx-2 my-1 px-4 py-3 flex items-center gap-4 hover:translate-x-1 transition-all font-medium text-lg">
+                <span class="material-symbols-outlined" th:style="${activa == 'recepcio' ? 'font-variation-settings: ''FILL'' 1;' : ''}">add_circle</span> <span th:text="#{navbar.reception}">Recepción</span>
+            </a>
+
+            <a th:href="@{/lotes}" 
+               th:classappend="${activa == 'lotes' ? 'bg-[#974400] text-white shadow-lg' : 'text-stone-600 hover:bg-stone-100'}"
+               class="rounded-xl mx-2 my-1 px-4 py-3 flex items-center gap-4 hover:translate-x-1 transition-all font-medium text-lg">
+                <span class="material-symbols-outlined" th:style="${activa == 'lotes' ? 'font-variation-settings: ''FILL'' 1;' : ''}">inventory_2</span> <span th:text="#{navbar.lots}">Lotes</span>
+            </a>
+
+            <a th:href="@{/historial-albarans}" 
+               th:classappend="${activa == 'historial-albarans' ? 'bg-[#974400] text-white shadow-lg' : 'text-stone-600 hover:bg-stone-100'}"
+               class="rounded-xl mx-2 my-1 px-4 py-3 flex items-center gap-4 hover:translate-x-1 transition-all font-medium text-lg">
+                <span class="material-symbols-outlined" th:style="${activa == 'historial-albarans' ? 'font-variation-settings: ''FILL'' 1;' : ''}">history</span> <span th:text="#{navbar.provider_delivery}">Albaranes Proveedor</span>
+            </a>
+
+            <a th:href="@{/albara-client}" 
+               th:classappend="${activa == 'albara-client' ? 'bg-[#974400] text-white shadow-lg' : 'text-stone-600 hover:bg-stone-100'}"
+               class="rounded-xl mx-2 my-1 px-4 py-3 flex items-center gap-4 hover:translate-x-1 transition-all font-medium text-lg">
+                <span class="material-symbols-outlined" th:style="${activa == 'albara-client' ? 'font-variation-settings: ''FILL'' 1;' : ''}">local_shipping</span> <span th:text="#{navbar.client_exit}">Salida Cliente</span>
+            </a>
+
+            <a th:href="@{/albara-client/llistat}" 
+               th:classappend="${activa == 'albaranes-cliente' ? 'bg-[#974400] text-white shadow-lg' : 'text-stone-600 hover:bg-stone-100'}"
+               class="rounded-xl mx-2 my-1 px-4 py-3 flex items-center gap-4 hover:translate-x-1 transition-all font-medium text-lg">
+                <span class="material-symbols-outlined" th:style="${activa == 'albaranes-cliente' ? 'font-variation-settings: ''FILL'' 1;' : ''}">list_alt</span> <span th:text="#{navbar.client_delivery}">Albaranes Cliente</span>
+            </a>
+
+            <a th:href="@{/comandes}" 
+               th:classappend="${activa == 'comandes' ? 'bg-[#974400] text-white shadow-lg' : 'text-stone-600 hover:bg-stone-100'}"
+               class="rounded-xl mx-2 my-1 px-4 py-3 flex items-center gap-4 hover:translate-x-1 transition-all font-medium text-lg">
+                <span class="material-symbols-outlined" th:style="${activa == 'comandes' ? 'font-variation-settings: ''FILL'' 1;' : ''}">shopping_cart</span> <span th:text="#{navbar.orders}">Comandes</span>
+            </a>
+
+            <!-- ═══ TODOS (ADMIN + TREBALLADOR) ═══ -->
+            <a th:href="@{/informe}" 
+               th:classappend="${activa == 'informe' ? 'bg-[#974400] text-white shadow-lg' : 'text-stone-600 hover:bg-stone-100'}"
+               class="rounded-xl mx-2 my-1 px-4 py-3 flex items-center gap-4 hover:translate-x-1 transition-all font-medium text-lg">
+                <span class="material-symbols-outlined" th:style="${activa == 'informe' ? 'font-variation-settings: ''FILL'' 1;' : ''}">description</span> <span th:text="#{navbar.report}">Informe</span>
+            </a>
+            
+            <div class="h-4"></div>
+        </div>
+
+        <div class="h-8 w-full bg-gradient-to-t from-[#F5E6D3] to-transparent -mt-8 pointer-events-none relative z-10"></div>
+
+        <div class="mt-auto p-4 border-t border-[#e2d0ba] bg-[#F5E6D3] relative z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <a th:href="@{/perfil}" class="flex items-center gap-3 p-3 mb-2 rounded-2xl hover:bg-[#ebd9c4] transition-colors group cursor-pointer">
+                <!-- Foto de Perfil (si existe) -->
+                <div th:if="${usuariLoguejat != null and usuariLoguejat.fotoPerfilUrl != null}" class="w-12 h-12 rounded-2xl overflow-hidden shadow-inner group-hover:scale-105 transition-transform flex-shrink-0">
+                    <img th:src="${usuariLoguejat.fotoPerfilUrl}" alt="Foto Perfil" class="w-full h-full object-cover">
+                </div>
+                <!-- Iniciales (si NO hay foto) -->
+                <div th:unless="${usuariLoguejat != null and usuariLoguejat.fotoPerfilUrl != null}" class="w-12 h-12 rounded-2xl bg-primary text-on-primary flex items-center justify-center font-bold text-xl shadow-inner group-hover:scale-105 transition-transform flex-shrink-0"
+                     th:text="${usuariLoguejat != null ? #strings.substring(usuariLoguejat.nom, 0, 1) + #strings.substring(usuariLoguejat.cognom, 0, 1) : 'MP'}">
+                    MP
+                </div>
+                <div class="flex-1 overflow-hidden">
+                    <p class="font-bold text-on-surface truncate" th:text="${usuariLoguejat != null ? usuariLoguejat.nom + ' ' + usuariLoguejat.cognom : #messages.msg('navbar.default.user')}">
+                        Maestro Panadero
+                    </p>
+                    <p class="text-xs text-on-surface-variant uppercase tracking-widest mt-0.5" th:text="${usuariLoguejat != null ? usuariLoguejat.rol : #messages.msg('navbar.default.role')}">
+                        Admin
+                    </p>
+                </div>
+            </a>
+
+            <!-- Selector de Idioma -->
+            <div class="flex items-center justify-center gap-4 mb-3 pt-2 text-sm font-bold text-stone-500">
+                <a th:href="@{''(lang=es)}" class="hover:text-primary transition-colors" th:classappend="${#locale.language == 'es'} ? 'text-primary' : ''">ES</a>
+                <span class="opacity-30">|</span>
+                <a th:href="@{''(lang=ca)}" class="hover:text-primary transition-colors" th:classappend="${#locale.language == 'ca'} ? 'text-primary' : ''">CA</a>
+            </div>
+
+            <a th:href="@{/logout}" class="w-full flex items-center gap-4 px-4 py-3 text-error font-bold rounded-2xl hover:bg-error/10 transition-colors">
+                <span class="material-symbols-outlined">logout</span> <span th:text="#{navbar.logout}">Cerrar sesión</span>
+            </a>
+        </div>
+        </nav>
+
+        <!-- Botón Flotante para Desktop y Móvil (Alterna el Menú Lateral) -->
+        <button id="easy-navbar-toggle" class="fixed bottom-8 right-8 z-[100] bg-primary text-white w-14 h-14 rounded-full shadow-[0_10px_25px_rgba(151,68,0,0.5)] hover:scale-110 hover:bg-[#7a3700] transition-all flex items-center justify-center cursor-pointer" title="Alternar Menú Lateral">
+            <span class="material-symbols-outlined text-[28px]" id="toggle-icon">menu</span>
+        </button>
+
+        <script>
+            (function() {
+                // Elementos
+                const toggleBtn = document.getElementById('easy-navbar-toggle');
+                const nav = document.querySelector('nav');
+                const toggleIcon = document.getElementById('toggle-icon');
+
+                // Asegurar que el estado inicial de localStorage esté aplicado
+                const isMinimized = localStorage.getItem('sidebar_minimized') === 'true';
+                if (isMinimized && window.innerWidth >= 768) {
+                    document.documentElement.classList.add('sidebar-minimized');
+                } else {
+                    document.documentElement.classList.remove('sidebar-minimized');
+                }
+
+                updateFloatingIconState();
+
+                // Acción del Botón flotante inferior (sincronizado)
+                if (toggleBtn) {
+                    let isMobileOpen = false;
+
+                    toggleBtn.addEventListener('click', () => {
+                        const isDesktop = window.innerWidth >= 768;
+                        
+                        if (isDesktop) {
+                            // En Desktop, alterna el estado colapsado general
+                            const currentlyMinimized = document.documentElement.classList.contains('sidebar-minimized');
+                            if (currentlyMinimized) {
+                                document.documentElement.classList.remove('sidebar-minimized');
+                                localStorage.setItem('sidebar_minimized', 'false');
+                            } else {
+                                document.documentElement.classList.add('sidebar-minimized');
+                                localStorage.setItem('sidebar_minimized', 'true');
+                            }
+                            updateFloatingIconState();
+                        } else {
+                            // En Móvil, toggle de clase activa para deslizar
+                            isMobileOpen = !isMobileOpen;
+                            if (isMobileOpen) {
+                                nav.classList.add('mobile-active');
+                                toggleIcon.textContent = 'close';
+                            } else {
+                                nav.classList.remove('mobile-active');
+                                toggleIcon.textContent = 'menu';
+                            }
+                        }
+                    });
+                }
+
+                // Sincronizar el icono del botón flotante inferior
+                function updateFloatingIconState() {
+                    if (!toggleIcon) return;
+                    const isDesktop = window.innerWidth >= 768;
+                    const currentlyMinimized = document.documentElement.classList.contains('sidebar-minimized');
+
+                    if (isDesktop) {
+                        toggleIcon.textContent = currentlyMinimized ? 'menu' : 'menu_open';
+                    } else {
+                        toggleIcon.textContent = 'menu';
+                    }
+                }
+
+                // Asegurar limpieza de estilos al redimensionar la pantalla
+                window.addEventListener('resize', () => {
+                    const isDesktop = window.innerWidth >= 768;
+                    if (isDesktop) {
+                        nav.classList.remove('mobile-active');
+                    }
+                    updateFloatingIconState();
+                });
+            })();
+        </script>
+    </div>
+</body>
+</html>

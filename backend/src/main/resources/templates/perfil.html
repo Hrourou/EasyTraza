@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>EasyTraza - Mi Perfil</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <script id="tailwind-config">
+        tailwind.config = { darkMode: "class", theme: { extend: { colors: { "primary": "#974400", "secondary": "#934b19", "surface-container": "#f5edde", "surface-container-low": "#fbf3e4", "surface-container-highest": "#e9e2d3", "error": "#ba1a1a", "error-container": "#ffdad6", "on-error-container": "#93000a", "surface": "#fff8ef", "on-surface": "#1e1b13", "on-surface-variant": "#564338" }, fontFamily: { "headline": ["Lexend"], "body": ["Lexend"], "label": ["Lexend"] } } } }
+    </script>
+    <style> body { font-family: 'Lexend', sans-serif; min-height: 100dvh; } .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; } </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex overflow-x-hidden relative">
+
+    <div th:replace="~{fragments/navbar :: menu-lateral('perfil')}"></div>
+
+    <main class="flex-1 md:ml-80 flex flex-col min-h-screen transition-all duration-300">
+        <div class="p-6 md:p-8 lg:px-16 lg:py-8 max-w-4xl mx-auto w-full flex-1 flex flex-col">
+            
+            <div class="mb-8">
+                <h1 class="text-4xl lg:text-5xl font-black text-on-surface tracking-tighter mb-2" th:text="#{profile.title}">Mi Perfil</h1>
+                <p class="text-lg text-on-surface-variant" th:text="#{profile.subtitle}">Modifica tus datos personales y credenciales de acceso.</p>
+            </div>
+
+            <div th:if="${error}" class="bg-error-container text-on-error-container p-4 rounded-2xl flex items-center gap-4 mb-6 shadow-md">
+                <span class="material-symbols-outlined text-2xl">error</span>
+                <p class="font-bold text-md" th:text="${error}"></p>
+            </div>
+            <div th:if="${success}" class="bg-green-100 text-green-800 p-4 rounded-2xl flex items-center gap-4 mb-6 shadow-md">
+                <span class="material-symbols-outlined text-2xl">check_circle</span>
+                <p class="font-bold text-md" th:text="${success}"></p>
+            </div>
+
+            <div class="bg-surface-container p-8 md:p-10 rounded-[2rem] shadow-xl border border-surface-container-highest relative overflow-hidden">
+                <div class="absolute -top-24 -right-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <form action="/perfil/update" method="post" enctype="multipart/form-data" th:object="${perfil}" class="space-y-6 relative z-10">
+                    
+                    <input type="hidden" name="deletePhoto" id="deletePhotoInput" value="false">
+                    
+                    <!-- Foto de Perfil -->
+                    <div class="flex items-center gap-6 bg-surface-container-lowest p-4 rounded-2xl border border-surface-container-highest relative">
+                        <div class="relative w-24 h-24 rounded-2xl bg-surface-container-highest overflow-hidden shadow-inner flex-shrink-0 flex items-center justify-center">
+                            <img id="profileImagePreview" th:if="*{fotoPerfilUrl != null}" th:src="*{fotoPerfilUrl}" alt="Foto Perfil" class="w-full h-full object-cover">
+                            <img id="profileImagePreviewNew" src="" class="hidden w-full h-full object-cover">
+                            <span id="profileIconPlaceholder" th:classappend="*{fotoPerfilUrl != null} ? 'hidden' : ''" class="material-symbols-outlined text-4xl text-primary/50">person</span>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-primary font-bold mb-2 uppercase tracking-wide text-xs" th:text="#{profile.form.photo}">Foto de Perfil</label>
+                            <input type="file" id="fileInput" name="file" accept="image/*" class="w-full text-sm text-on-surface-variant file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-secondary cursor-pointer transition-all">
+                        </div>
+                        <div id="deletePhotoContainer" th:classappend="*{fotoPerfilUrl == null} ? 'hidden' : ''" class="absolute top-4 right-4">
+                            <button type="button" id="btnDeletePhoto" class="text-error bg-error/10 hover:bg-error hover:text-white flex items-center justify-center w-8 h-8 rounded-full transition-colors" title="Eliminar Foto">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-secondary font-bold mb-2 uppercase tracking-wide text-xs" th:text="#{profile.form.dni}">DNI / NIF (No modificable)</label>
+                        <input type="text" th:field="*{dni}" readonly class="w-full p-4 bg-surface-container-highest border-none rounded-xl font-medium text-on-surface-variant opacity-70 cursor-not-allowed">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-primary font-bold mb-2 uppercase tracking-wide text-xs" th:text="#{profile.form.name}">Nombre *</label>
+                            <input type="text" th:field="*{nom}" required class="w-full p-4 bg-surface-container-lowest border-none rounded-xl font-medium focus:ring-2 focus:ring-primary shadow-sm transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-primary font-bold mb-2 uppercase tracking-wide text-xs" th:text="#{profile.form.surname}">Apellidos *</label>
+                            <input type="text" th:field="*{cognom}" required class="w-full p-4 bg-surface-container-lowest border-none rounded-xl font-medium focus:ring-2 focus:ring-primary shadow-sm transition-all">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-primary font-bold mb-2 uppercase tracking-wide text-xs" th:text="#{profile.form.email}">Correo Electrónico (Login) *</label>
+                        <input type="email" th:field="*{email}" required class="w-full p-4 bg-surface-container-lowest border-none rounded-xl font-medium focus:ring-2 focus:ring-primary shadow-sm transition-all">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-primary font-bold mb-2 uppercase tracking-wide text-xs" th:text="#{profile.form.phone}">Teléfono</label>
+                            <input type="tel" th:field="*{telefon}" class="w-full p-4 bg-surface-container-lowest border-none rounded-xl font-medium focus:ring-2 focus:ring-primary shadow-sm transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-primary font-bold mb-2 uppercase tracking-wide text-xs" th:text="#{profile.form.address}">Dirección</label>
+                            <input type="text" th:field="*{direccio}" class="w-full p-4 bg-surface-container-lowest border-none rounded-xl font-medium focus:ring-2 focus:ring-primary shadow-sm transition-all">
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-surface-container-highest">
+                        <h3 class="text-xl font-bold text-on-surface mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-secondary">lock_reset</span> <span th:text="#{profile.form.password.title}">Cambiar Contraseña</span>
+                        </h3>
+                        <div>
+                            <label class="block text-secondary font-bold mb-2 uppercase tracking-wide text-xs" th:text="#{profile.form.password.new}">Nueva Contraseña</label>
+                            <input type="password" th:field="*{password}" class="w-full p-4 bg-surface-container-lowest border-none rounded-xl font-medium focus:ring-2 focus:ring-primary shadow-sm transition-all placeholder:text-sm placeholder:font-normal" th:placeholder="#{profile.form.password.placeholder}" minlength="8">
+                            <p class="text-xs text-on-surface-variant mt-2 opacity-80" th:text="#{profile.form.password.help}">Si dejas este campo vacío, tu contraseña actual se mantendrá.</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-8 flex justify-end gap-4">
+                        <button type="submit" id="btnUpdateProfile" disabled class="px-8 py-4 bg-primary text-white font-bold text-lg rounded-xl shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0" th:text="#{profile.btn.update}">
+                            Actualizar Mi Perfil
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+   <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form[action="/perfil/update"]');
+            const btnUpdate = document.getElementById('btnUpdateProfile');
+            const inputs = form.querySelectorAll('input:not([type="hidden"])');
+            const fileInput = document.getElementById('fileInput');
+            const btnDeletePhoto = document.getElementById('btnDeletePhoto');
+            const deletePhotoInput = document.getElementById('deletePhotoInput');
+            const profileImagePreview = document.getElementById('profileImagePreview');
+            const profileImagePreviewNew = document.getElementById('profileImagePreviewNew');
+            const profileIconPlaceholder = document.getElementById('profileIconPlaceholder');
+            const deletePhotoContainer = document.getElementById('deletePhotoContainer');
+            
+            let isSubmitting = false;
+            let hasChangesGlobal = false;
+            
+            form.addEventListener('submit', function() {
+                isSubmitting = true;
+            });
+            
+            window.addEventListener('beforeunload', function(e) {
+                if (hasChangesGlobal && !isSubmitting) {
+                    e.preventDefault();
+                    e.returnValue = ''; // Muestra el diálogo por defecto del navegador
+                }
+            });
+            
+            // Guardamos los valores iniciales al cargar la página
+            const initialValues = {};
+            inputs.forEach(input => {
+                if (input.type !== 'file') {
+                    initialValues[input.name] = input.value;
+                }
+            });
+            
+            // Función para comprobar si hay cambios
+            function checkChanges() {
+                let hasChanges = false;
+                
+                inputs.forEach(input => {
+                    if (input.type === 'password') {
+                        if (input.value.trim() !== '') hasChanges = true;
+                    } else if (input.type === 'file') {
+                        if (input.files.length > 0) hasChanges = true;
+                    } else if (initialValues[input.name] !== input.value) {
+                        hasChanges = true;
+                    }
+                });
+                
+                if (deletePhotoInput.value === 'true') {
+                    hasChanges = true;
+                }
+                
+                hasChangesGlobal = hasChanges;
+                
+                // Activar o desactivar el botón según haya cambios
+                if (hasChanges) {
+                    btnUpdate.removeAttribute('disabled');
+                } else {
+                    btnUpdate.setAttribute('disabled', 'true');
+                }
+            }
+            
+            // Escuchar cada vez que el usuario teclea algo
+            inputs.forEach(input => {
+                input.addEventListener('input', checkChanges);
+            });
+            
+            if (fileInput) {
+                fileInput.addEventListener('change', function() {
+                    const file = this.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            if (profileImagePreview) profileImagePreview.classList.add('hidden');
+                            profileImagePreviewNew.src = e.target.result;
+                            profileImagePreviewNew.classList.remove('hidden');
+                            profileIconPlaceholder.classList.add('hidden');
+                            if (deletePhotoContainer) deletePhotoContainer.classList.remove('hidden');
+                        }
+                        reader.readAsDataURL(file);
+                        deletePhotoInput.value = 'false';
+                    }
+                    checkChanges();
+                });
+            }
+            
+            if (btnDeletePhoto) {
+                btnDeletePhoto.addEventListener('click', function() {
+                    deletePhotoInput.value = 'true';
+                    if (fileInput) fileInput.value = '';
+                    if (profileImagePreview) profileImagePreview.classList.add('hidden');
+                    profileImagePreviewNew.classList.add('hidden');
+                    profileImagePreviewNew.src = '';
+                    profileIconPlaceholder.classList.remove('hidden');
+                    deletePhotoContainer.classList.add('hidden');
+                    checkChanges();
+                });
+            }
+        });
+    </script>
+</body>
+</html>

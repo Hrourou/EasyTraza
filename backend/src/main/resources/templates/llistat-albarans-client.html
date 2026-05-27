@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>EasyTraza - Historial Albaranes</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-container": "#bb5808", "on-secondary-container": "#783603",
+                        "secondary": "#934b19", "on-surface": "#1e1b13",
+                        "surface-container": "#f5edde", "secondary-container": "#ffa26a",
+                        "surface-container-low": "#fbf3e4", "on-surface-variant": "#564338",
+                        "surface-container-highest": "#e9e2d3", "on-primary": "#ffffff",
+                        "primary": "#974400", "on-error": "#ffffff", "surface": "#fff8ef",
+                        "error-container": "#ffdad6", "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff", "outline-variant": "#ddc1b3",
+                    },
+                    fontFamily: {
+                        "headline": ["Lexend"], "body": ["Lexend"], "label": ["Lexend"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Lexend', sans-serif; min-height: 100dvh; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .custom-checkbox { width: 1.25rem; height: 1.25rem; border-radius: 0.375rem; border-color: #974400; color: #974400; cursor: pointer; }
+        .custom-checkbox:focus { ring-color: #bb5808; }
+        .nav-scroll::-webkit-scrollbar { display: none; }
+        .nav-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex overflow-x-hidden relative">
+
+    <div th:replace="~{fragments/navbar :: menu-lateral('albaranes-cliente')}"></div>
+
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 md:ml-80 flex flex-col min-h-screen transition-all duration-300" id="main-content">
+        <div class="p-6 md:p-8 lg:px-16 lg:py-8 max-w-7xl mx-auto w-full flex-1 flex flex-col">
+            
+            <!-- Cabecera y Buscador -->
+            <div class="mb-6 flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
+                <div>
+                    <h1 class="text-4xl lg:text-5xl font-black text-on-surface tracking-tighter mb-2" th:text="#{albarans_client.title}">Albaranes</h1>
+                    <p class="text-lg text-on-surface-variant max-w-2xl" th:text="#{albarans_client.subtitle}">Historial de salidas y entregas a clientes.</p>
+                </div>
+                
+                <div class="relative w-full md:w-80 lg:w-96">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60">search</span>
+                    <input id="searchInput" onkeyup="filterTable()" class="w-full pl-12 pr-4 py-3 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary text-on-surface font-medium transition-all placeholder:text-on-surface-variant/60" th:placeholder="#{albarans_client.search_placeholder}" type="text"/>
+                </div>
+            </div>
+
+            <!-- Alertas -->
+            <div th:if="${param.success}" class="bg-green-100 text-green-800 p-4 rounded-2xl flex items-center gap-4 mb-6">
+                <span class="material-symbols-outlined text-2xl">check_circle</span>
+                <p class="font-bold text-md" th:text="#{albarans_client.alert.success}">Operación realizada con éxito.</p>
+            </div>
+            <div th:if="${param.error}" class="bg-error-container text-on-error-container p-4 rounded-2xl flex items-center gap-4 mb-6">
+                <span class="material-symbols-outlined text-2xl">error</span>
+                <p class="font-bold text-md" th:text="${param.error}"></p>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="mb-8 flex flex-wrap gap-4">
+                <a th:href="@{/albara-client}" class="bg-gradient-to-br from-primary to-primary-container text-on-primary h-14 px-8 rounded-2xl flex items-center justify-center gap-3 hover:opacity-90 transition-all shadow-lg shadow-primary/20 hover:-translate-y-1">
+                    <span class="material-symbols-outlined text-2xl">add</span>
+                    <span class="text-lg font-bold" th:text="#{albarans_client.btn.new}">Crear Albarán</span>
+                </a>
+                
+                <button id="btnDeleteSelected" onclick="deleteSelected()" class="hidden bg-error text-white h-14 px-8 rounded-2xl flex items-center justify-center gap-3 hover:bg-red-700 transition-all shadow-lg shadow-red-500/20 hover:-translate-y-1">
+                    <span class="material-symbols-outlined text-2xl">delete_sweep</span>
+                    <span class="text-lg font-bold"><span th:text="#{albarans_client.btn.delete_selected}">Borrar Seleccionados</span> (<span id="selectedCount">0</span>)</span>
+                </button>
+            </div>
+
+            <!-- Tabla Panel -->
+            <div class="bg-surface-container-lowest rounded-3xl shadow-sm border border-outline-variant/30 overflow-hidden" id="albaranesTable">
+                
+                <!-- Cabecera Desktop -->
+                <div class="hidden xl:grid grid-cols-[auto_1fr_1fr_1fr_auto_auto] gap-4 px-8 py-5 bg-surface-container-low text-xs uppercase tracking-widest text-on-surface-variant font-bold border-b border-outline-variant/30">
+                    <div class="flex items-center justify-center w-8">
+                        <input type="checkbox" id="selectAll" class="custom-checkbox" onclick="toggleSelectAll()">
+                    </div>
+                    <div th:text="#{albarans_client.table.id}">ID Albarán</div>
+                    <div th:text="#{albarans_client.table.date}">Fecha</div>
+                    <div th:text="#{albarans_client.table.client}">Cliente</div>
+                    <div th:text="#{albarans_client.table.status}">Estado</div>
+                    <div class="text-center" th:text="#{albarans_client.table.actions}">Acciones</div>
+                </div>
+
+                <div class="flex flex-col divide-y divide-outline-variant/20">
+                    
+                    <div th:each="albara : ${albarans}" class="fila-albara grid grid-cols-1 xl:grid-cols-[auto_1fr_1fr_1fr_auto_auto] gap-4 px-6 xl:px-8 py-6 items-center hover:bg-surface-container-highest/50 transition-colors group relative">
+                        
+                        <!-- Checkbox (Mobile absolute, Desktop normal) -->
+                        <div class="absolute top-6 right-6 xl:relative xl:top-auto xl:right-auto flex items-center justify-center w-8">
+                            <input th:if="${albara.estat.name() == 'PENDENT_DE_LLIURAR'}" 
+                                   type="checkbox" 
+                                   class="custom-checkbox row-checkbox" 
+                                   th:value="${albara.client.nif + '|' + #temporals.format(albara.dataProduccio, 'yyyy-MM-dd''T''HH:mm:ss')}"
+                                   onclick="updateDeleteButton()">
+                        </div>
+                        
+                        <!-- ID Albaran -->
+                        <div class="flex items-center gap-3">
+                            <div class="h-10 w-10 rounded-lg bg-primary-container/10 flex items-center justify-center text-primary">
+                                <span class="material-symbols-outlined text-lg">local_shipping</span>
+                            </div>
+                            <div>
+                                <span class="xl:hidden text-[10px] uppercase tracking-wider text-on-surface-variant block mb-1" th:text="#{albarans_client.table.id}">ID Albarán</span>
+                                <span class="font-bold text-on-surface col-id" th:text="'ALB-' + ${#temporals.format(albara.dataProduccio, 'ddMM-HHmm')}"></span>
+                            </div>
+                        </div>
+
+                        <!-- Fecha -->
+                        <div>
+                            <span class="xl:hidden text-[10px] uppercase tracking-wider text-on-surface-variant block mb-1" th:text="#{albarans_client.table.date}">Fecha</span>
+                            <span class="font-bold text-on-surface col-fecha" th:text="${#temporals.format(albara.dataProduccio, 'dd/MM/yyyy HH:mm')}"></span>
+                        </div>
+
+                        <!-- Cliente -->
+                        <div>
+                            <span class="xl:hidden text-[10px] uppercase tracking-wider text-on-surface-variant block mb-1" th:text="#{albarans_client.table.client}">Cliente</span>
+                            <span class="font-medium text-on-surface-variant col-cliente" th:text="${albara.client.nom + ' ' + albara.client.cognoms}"></span>
+                        </div>
+
+                        <!-- Estado -->
+                        <div>
+                            <span class="xl:hidden text-[10px] uppercase tracking-wider text-on-surface-variant block mb-1" th:text="#{albarans_client.table.status}">Estado</span>
+                            <span th:if="${albara.estat.name() == 'PENDENT_DE_LLIURAR'}" class="bg-secondary-container/30 text-secondary font-black text-xs px-4 py-2 rounded-xl" th:text="#{albarans_client.badge.pending}">PENDIENTE</span>
+                            <span th:if="${albara.estat.name() == 'LLIURAT'}" class="bg-green-100 text-green-800 font-black text-xs px-4 py-2 rounded-xl" th:text="#{albarans_client.badge.delivered}">ENTREGADO</span>
+                        </div>
+
+                        <!-- Acciones -->
+                        <div class="flex xl:justify-center gap-3 mt-4 xl:mt-0">
+                            <!-- BOTÓN EDITAR -->
+                            <a th:if="${albara.estat.name() == 'PENDENT_DE_LLIURAR'}" 
+                               th:href="@{/albara-client/editar(nif=${albara.client.nif}, data=${#temporals.format(albara.dataProduccio, 'yyyy-MM-dd''T''HH:mm:ss')})}" 
+                               class="w-10 h-10 bg-surface-container rounded-xl flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors" th:title="#{albarans_client.btn.edit}">
+                                <span class="material-symbols-outlined text-[18px]">edit</span>
+                            </a>
+                            
+                            <!-- BOTÓN BORRAR INDIVIDUAL -->
+                            <form th:if="${albara.estat.name() == 'PENDENT_DE_LLIURAR'}" th:action="@{/albara-client/eliminar}" method="post" th:data-confirm="#{albarans_client.btn.delete_confirm}" onsubmit="return confirm(this.getAttribute('data-confirm'));">
+                                <input type="hidden" name="nif" th:value="${albara.client.nif}">
+                                <input type="hidden" name="data" th:value="${#temporals.format(albara.dataProduccio, 'yyyy-MM-dd''T''HH:mm:ss')}">
+                                <button type="submit" class="w-10 h-10 bg-error-container text-error rounded-xl flex items-center justify-center hover:bg-error hover:text-white transition-colors" th:title="#{albarans_client.btn.delete}">
+                                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                                </button>
+                            </form>
+
+                            <!-- BOTÓN ENTREGAR -->
+                            <form th:if="${albara.estat.name() == 'PENDENT_DE_LLIURAR'}" th:action="@{/albara-client/entregar}" method="post" th:data-confirm="#{albarans_client.btn.deliver_confirm}" onsubmit="return confirm(this.getAttribute('data-confirm'));">
+                                <input type="hidden" name="nif" th:value="${albara.client.nif}">
+                                <input type="hidden" name="data" th:value="${#temporals.format(albara.dataProduccio, 'yyyy-MM-dd''T''HH:mm:ss')}">
+                                <button type="submit" class="w-10 h-10 bg-green-100 text-green-700 rounded-xl flex items-center justify-center hover:bg-green-600 hover:text-white transition-colors" th:title="#{albarans_client.btn.deliver}">
+                                    <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                                </button>
+                            </form>
+                            
+                            <span th:if="${albara.estat.name() == 'LLIURAT'}" class="text-on-surface-variant/50 text-sm italic py-2" th:text="#{albarans_client.text.locked}">Bloqueado</span>
+                        </div>
+                        
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(albarans)}" class="p-10 text-center text-secondary opacity-70 font-bold border-2 border-dashed border-primary/20 m-4 rounded-3xl" th:text="#{albarans_client.table.empty}">
+                        No hay albaranes registrados.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script th:inline="javascript">
+        // --- 1. Lógica del Buscador/Filtro ---
+        function filterTable() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('.fila-albara');
+            
+            rows.forEach(row => {
+                const idAlbara = row.querySelector('.col-id').innerText.toLowerCase();
+                const fecha = row.querySelector('.col-fecha').innerText.toLowerCase();
+                const cliente = row.querySelector('.col-cliente').innerText.toLowerCase();
+                
+                if(idAlbara.includes(input) || fecha.includes(input) || cliente.includes(input)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // --- 2. Lógica de Multiselección (Checkbox) ---
+        function toggleSelectAll() {
+            const selectAllCheck = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            
+            checkboxes.forEach(cb => {
+                if (cb.closest('tr').style.display !== 'none') {
+                    cb.checked = selectAllCheck.checked;
+                }
+            });
+            updateDeleteButton();
+        }
+
+        function updateDeleteButton() {
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            const btn = document.getElementById('btnDeleteSelected');
+            const countSpan = document.getElementById('selectedCount');
+            
+            if (checkboxes.length > 0) {
+                btn.classList.remove('hidden');
+                countSpan.innerText = checkboxes.length;
+            } else {
+                btn.classList.add('hidden');
+            }
+            
+            const allCheckboxes = document.querySelectorAll('.row-checkbox');
+            const selectAllCheck = document.getElementById('selectAll');
+            selectAllCheck.checked = (allCheckboxes.length > 0 && checkboxes.length === allCheckboxes.length);
+        }
+
+        // --- 3. Enviar Selección Múltiple al Backend (CORREGIDO: secuencial + CSRF) ---
+        async function deleteSelected() {
+            if (!confirm([[#{albarans_client.js.delete_all_confirm}]])) {
+                return;
+            }
+
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            
+            // Obtener el token CSRF de cualquier formulario existente en la página
+            const csrfInput = document.querySelector('form input[name="_csrf"]');
+            const csrfToken = csrfInput ? csrfInput.value : '';
+
+            // Enviar las peticiones de borrado de forma SECUENCIAL (una a una)
+            for (const cb of checkboxes) {
+                const [nif, data] = cb.value.split('|');
+                
+                const formData = new URLSearchParams();
+                formData.append('nif', nif);
+                formData.append('data', data);
+                if (csrfToken) formData.append('_csrf', csrfToken);
+
+                try {
+                    await fetch('/albara-client/eliminar', {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                    });
+                } catch(e) {
+                    console.error('Error eliminando albarán:', e);
+                }
+            }
+
+            window.location.href = '/albara-client/llistat?success=eliminats';
+        }
+    </script>
+</body>
+</html>

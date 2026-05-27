@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>EasyTraza - Materias Primas</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-container": "#bb5808", "on-secondary-container": "#783603",
+                        "secondary": "#934b19", "on-surface": "#1e1b13",
+                        "surface-container": "#f5edde", "secondary-container": "#ffa26a",
+                        "surface-container-low": "#fbf3e4", "on-surface-variant": "#564338",
+                        "surface-container-highest": "#e9e2d3", "on-primary": "#ffffff",
+                        "primary": "#974400", "on-error": "#ffffff", "surface": "#fff8ef",
+                        "error-container": "#ffdad6", "error": "#ba1a1a"
+                    },
+                    fontFamily: {
+                        "headline": ["Lexend"], "body": ["Lexend"], "label": ["Lexend"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Lexend', sans-serif; min-height: 100dvh; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex overflow-x-hidden relative">
+
+    <div th:replace="~{fragments/navbar :: menu-lateral('materias')}"></div>
+
+    <main class="flex-1 md:ml-80 flex flex-col min-h-screen transition-all duration-300" id="main-content">
+        <div class="p-6 md:p-8 lg:px-16 lg:py-8 max-w-7xl mx-auto w-full flex-1 flex flex-col">
+            
+            <div class="mb-6 flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
+                <div>
+                    <h1 class="text-4xl lg:text-5xl font-black text-on-surface tracking-tighter mb-2" th:text="#{rawmat.title}">Materias Primas</h1>
+                    <p class="text-lg text-on-surface-variant max-w-2xl" th:text="#{rawmat.catalog.desc}">Gestiona tu catálogo de ingredientes crudos y materias primas.</p>
+                </div>
+                
+                <div class="relative w-full md:w-80 lg:w-96">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+                    <input id="searchInput" onkeyup="filterCatalogo()" class="w-full pl-12 pr-4 py-3 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary text-on-surface font-medium transition-all placeholder:text-on-surface-variant/60" th:placeholder="#{rawmat.search_placeholder}" type="text"/>
+                </div>
+            </div>
+
+            <div th:if="${error}" class="bg-error-container text-on-error-container p-4 rounded-2xl flex items-center gap-4 mb-6">
+                <span class="material-symbols-outlined text-2xl">error</span>
+                <p class="font-bold text-md" th:text="${error}"></p>
+            </div>
+
+            <div class="mb-8">
+                <button onclick="openModalMateria('create')" class="bg-gradient-to-br from-primary to-primary-container text-on-primary h-16 px-8 rounded-2xl flex items-center justify-center gap-3 hover:opacity-90 transition-all shadow-lg shadow-primary/20 hover:-translate-y-1">
+                    <span class="material-symbols-outlined text-2xl">add</span>
+                    <span class="text-lg font-bold" th:text="#{rawmat.add_btn}">Añadir Materia Prima</span>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div th:if="${#lists.isEmpty(materies)}" class="col-span-full bg-surface-container p-10 rounded-3xl text-center border-2 border-dashed border-primary/20">
+                    <p class="text-lg font-bold text-secondary opacity-70" th:text="#{rawmat.empty.catalog}">No hay materias primas registradas.</p>
+                </div>
+
+                <div th:each="mat : ${materies}" class="catalogo-card bg-surface-container-lowest p-6 rounded-3xl flex flex-col gap-4 shadow-sm border border-outline-variant/30 hover:shadow-md transition-all"
+                     th:data-nom="${mat.nom}" th:data-desc="${mat.descripcio}">
+                    <div class="flex justify-between items-start">
+                        <div class="w-14 h-14 bg-surface-container-low rounded-2xl flex items-center justify-center">
+                            <span class="material-symbols-outlined text-3xl text-primary">grain</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-on-surface mb-1" th:text="${mat.nom}">Harina</h3>
+                        <p class="text-sm text-on-surface-variant line-clamp-2" th:text="${mat.descripcio}">Descripción</p>
+                    </div>
+                    <div class="mt-auto pt-4 flex justify-between items-end border-t border-outline-variant/20">
+                        <div th:if="${!materiesAmbLots[mat.id]}">
+                            <button th:onclick="'openDeleteModal(' + ${mat.id} + ')'" class="w-10 h-10 bg-error-container text-error rounded-xl flex items-center justify-center hover:bg-error hover:text-white transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">delete</span>
+                            </button>
+                        </div>
+                        <div th:if="${materiesAmbLots[mat.id]}" class="flex items-center gap-2 text-on-surface-variant/50" th:title="#{rawmat.card.locked}">
+                            <span class="material-symbols-outlined text-[18px]">lock</span>
+                            <span class="text-xs font-bold" th:text="#{rawmat.card.locked_badge}">Amb lots</span>
+                        </div>
+                        <button th:onclick="openModalMateria('edit', [[${mat.id}]], [[${mat.nom}]], [[${mat.descripcio}]])" class="w-10 h-10 bg-surface-container rounded-xl flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">edit</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modal Materia Prima -->
+    <div id="materiaModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity">
+        <div class="bg-surface w-full max-w-lg rounded-[2rem] shadow-2xl overflow-hidden flex flex-col">
+            <div class="p-8 pb-4 flex justify-between items-start">
+                <h3 id="materiaModalTitle" class="text-3xl font-black text-primary tracking-tight">Materia Prima</h3>
+                <button type="button" onclick="closeModal('materiaModal')" class="w-10 h-10 rounded-full bg-surface-container text-secondary hover:bg-error-container hover:text-error flex items-center justify-center"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <form id="materiaForm" action="/admin/catalogo/materia/save" method="post" class="p-8 pt-0 space-y-6">
+                <input type="hidden" id="form_mat_id" name="id" />
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-secondary" th:text="#{rawmat.form.name}">Nombre *</label>
+                    <input id="form_mat_nom" name="nom" class="w-full h-14 px-6 bg-surface-container-low border-none rounded-xl font-medium focus:ring-2 focus:ring-primary" type="text" required/>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-secondary" th:text="#{rawmat.form.desc_unique}">Descripción Única *</label>
+                    <textarea id="form_mat_desc" name="descripcio" class="w-full p-6 bg-surface-container-low border-none rounded-2xl font-medium min-h-[100px] focus:ring-2 focus:ring-primary" required></textarea>
+                </div>
+                <button type="submit" class="w-full h-16 bg-primary text-white font-bold text-lg rounded-xl shadow-lg hover:opacity-90" th:text="#{rawmat.btn.save_mat}">Guardar Materia</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Eliminar -->
+    <div id="deleteModal" class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-surface w-full max-w-sm rounded-[2rem] shadow-2xl p-8 text-center">
+            <div class="w-20 h-20 bg-error-container rounded-full flex items-center justify-center text-error mx-auto mb-6"><span class="material-symbols-outlined text-4xl">warning</span></div>
+            <h3 class="text-2xl font-bold text-on-surface mb-2" th:text="#{rawmat.delete.title}">¿Eliminar materia prima?</h3>
+            <p class="text-secondary opacity-80 mb-8" th:text="#{rawmat.delete.subtitle}">Esta acción no se puede deshacer.</p>
+            <div class="flex gap-4">
+                <button type="button" onclick="closeModal('deleteModal')" class="flex-1 py-3 bg-surface-container font-bold rounded-xl hover:bg-surface-container-high" th:text="#{rawmat.btn.cancel}">Cancelar</button>
+                <form id="deleteForm" action="/admin/catalogo/materia/delete" method="post" class="flex-1">
+                    <input type="hidden" name="id" id="delete_id">
+                    <button type="submit" class="w-full py-3 bg-error text-white font-bold rounded-xl shadow-lg hover:opacity-90" th:text="#{rawmat.btn.delete}">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const mainContent = document.getElementById('main-content');
+
+        function filterCatalogo() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.catalogo-card');
+            cards.forEach(card => {
+                const nom = (card.getAttribute('data-nom') || "").toLowerCase();
+                const desc = (card.getAttribute('data-desc') || "").toLowerCase();
+                if(nom.includes(input) || desc.includes(input)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function openModalMateria(mode, id = '', nom = '', desc = '') {
+            document.getElementById('materiaModal').classList.remove('hidden');
+            mainContent.classList.add('blur-sm');
+            if(mode === 'create') {
+                document.getElementById('materiaModalTitle').innerText = [[#{rawmat.modal.create.title_new}]];
+                document.getElementById('materiaForm').action = "/admin/catalogo/materia/save";
+                document.getElementById('materiaForm').reset();
+                document.getElementById('form_mat_id').value = '';
+            } else {
+                document.getElementById('materiaModalTitle').innerText = [[#{rawmat.modal.edit.title}]];
+                document.getElementById('materiaForm').action = "/admin/catalogo/materia/update";
+                document.getElementById('form_mat_id').value = id;
+                document.getElementById('form_mat_nom').value = nom;
+                document.getElementById('form_mat_desc').value = desc;
+            }
+        }
+
+        function openDeleteModal(id) {
+            document.getElementById('delete_id').value = id;
+            document.getElementById('deleteModal').classList.remove('hidden');
+            mainContent.classList.add('blur-sm');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+            mainContent.classList.remove('blur-sm');
+        }
+    </script>
+</body>
+</html>

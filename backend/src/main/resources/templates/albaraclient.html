@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>EasyTraza - Salida a Cliente</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-container": "#bb5808", "on-secondary-container": "#783603",
+                        "secondary": "#934b19", "on-surface": "#1e1b13",
+                        "surface-container": "#f5edde", "secondary-container": "#ffa26a",
+                        "surface-container-low": "#fbf3e4", "on-surface-variant": "#564338",
+                        "surface-container-highest": "#e9e2d3", "on-primary": "#ffffff",
+                        "primary": "#974400", "on-error": "#ffffff", "surface": "#fff8ef",
+                        "error-container": "#ffdad6", "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff", "outline-variant": "#ddc1b3",
+                    },
+                    fontFamily: {
+                        "headline": ["Lexend"], "body": ["Lexend"], "label": ["Lexend"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Lexend', sans-serif; min-height: 100dvh; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .nav-scroll::-webkit-scrollbar { display: none; }
+        .nav-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex overflow-x-hidden relative">
+
+    <div th:replace="~{fragments/navbar :: menu-lateral('albara-client')}"></div>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 md:ml-80 flex flex-col min-h-screen transition-all duration-300" id="main-content">
+        <div class="p-6 md:p-8 lg:px-16 lg:py-8 max-w-4xl mx-auto w-full flex-1 flex flex-col">
+            
+            <div class="mb-8">
+                <h1 class="text-4xl lg:text-5xl font-black text-on-surface tracking-tighter mb-2" th:text="#{dispatch.title}">Crear Albarán de Cliente</h1>
+                <p class="text-lg text-on-surface-variant max-w-2xl" th:text="#{dispatch.subtitle}">Registra la salida de productos terminados hacia un cliente.</p>
+            </div>
+
+            <div th:if="${param.success}" class="bg-green-100 text-green-800 p-4 rounded-xl flex items-center gap-3 mb-8">
+                <span class="material-symbols-outlined">check_circle</span>
+                <p class="font-bold" th:text="#{dispatch.success}">¡Albarán guardado correctamente! Estado: PENDIENTE DE ENTREGA.</p>
+            </div>
+            <div th:if="${error}" class="bg-error-container text-on-error-container p-4 rounded-xl flex items-center gap-3 mb-8">
+                <span class="material-symbols-outlined">error</span>
+                <p class="font-bold" th:text="${error}"></p>
+            </div>
+
+            <!-- Banner comanda detectada (oculto por defecto) -->
+            <div id="comanda-banner" class="hidden bg-amber-50 border border-amber-300 text-amber-800 p-4 rounded-xl flex items-center gap-3 mb-8 shadow-sm">
+                <span class="material-symbols-outlined text-2xl">shopping_cart</span>
+                <p class="font-bold" th:text="#{dispatch.comanda_banner}">📦 Comanda detectada — Formulari rellenat automàticament amb l'encàrrec del dia.</p>
+            </div>
+
+            <div class="bg-white rounded-3xl p-8 sm:p-10 shadow-sm border border-outline-variant/20">
+                <h2 class="text-2xl font-bold text-on-surface mb-8 flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">local_shipping</span>
+                    <span th:text="#{dispatch.section.delivery}">Datos de la Entrega</span>
+                </h2>
+                
+                <form th:action="@{/albara-client/save}" th:object="${albaraDTO}" method="post" class="space-y-8" autocomplete="off">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pb-6 border-b border-outline-variant/30">
+                        <div class="flex flex-col gap-2">
+                            <label class="text-sm font-bold text-secondary uppercase tracking-wider" th:text="#{dispatch.form.client}">Cliente *</label>
+                            <div class="relative">
+                                <select th:field="*{nifClient}" th:disabled="${isEdit}" class="w-full bg-surface-container-highest border-none rounded-xl py-4 pl-4 pr-12 text-on-surface font-medium focus:ring-2 focus:ring-primary appearance-none cursor-pointer" required>
+                                    <option value="" disabled selected th:text="#{dispatch.form.client_placeholder}">Selecciona Cliente...</option>
+                                    <option th:each="cli : ${clients}" th:value="${cli.nif}" th:text="${cli.nom} + ' ' + ${cli.cognoms}"></option>
+                                </select>
+                                <!-- Si estamos editando, mandamos el NIF oculto porque el select está bloqueado -->
+                                <input th:if="${isEdit}" type="hidden" th:field="*{nifClient}">
+                                <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <label class="text-sm font-bold text-secondary uppercase tracking-wider" th:text="#{dispatch.form.date}">Fecha de Producción *</label>
+                            <div class="relative">
+                                <input type="hidden" th:field="*{edit}" />
+                                <input th:field="*{dataProduccio}" type="datetime-local" th:disabled="${isEdit}" class="w-full bg-surface-container-highest border-none rounded-xl py-4 px-4 text-on-surface font-medium focus:ring-2 focus:ring-primary cursor-pointer" required/>
+                                <!-- Oculto para que se envíe la fecha original al editar -->
+                                <input th:if="${isEdit}" type="hidden" th:field="*{dataProduccio}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="contenedor-lotes" class="space-y-6">
+                        <h3 class="text-lg font-bold text-on-surface flex justify-between items-center">
+                            <span th:text="#{dispatch.section.lines}">Líneas de Producto Final</span>
+                            <button type="button" onclick="agregarLinea()" class="text-sm bg-surface-container-highest hover:bg-primary hover:text-white text-secondary py-2 px-4 rounded-full transition-colors flex items-center gap-2">
+                                <span class="material-symbols-outlined text-sm">add</span> <span th:text="#{dispatch.btn.add_line}">Añadir Fila</span>
+                            </button>
+                        </h3>
+
+                        <div th:each="linia, stat : *{linies}" class="fila-lote bg-surface-container-low p-6 rounded-2xl relative border border-transparent transition-all">
+                            
+                            <button type="button" onclick="eliminarLinea(this)" class="absolute top-4 right-4 text-error hover:bg-error-container p-1 rounded-full transition-colors">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                            
+                            <h4 class="text-xs font-bold text-primary mb-4 uppercase tracking-wider"><span th:text="#{dispatch.line.row}">Fila</span> <span class="numero-fila" th:text="${stat.index + 1}">1</span></h4>
+
+                            <div class="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-4">
+                                <div class="flex flex-col gap-2">
+                                    <label class="text-sm font-bold text-secondary uppercase tracking-wider" th:text="#{dispatch.line.product}">Producto Final *</label>
+                                    <div class="relative">
+                                        <select th:field="*{linies[__${stat.index}__].producteId}" class="w-full bg-white border-none rounded-xl py-3 pl-4 pr-12 text-on-surface font-medium focus:ring-2 focus:ring-primary appearance-none cursor-pointer" required>
+                                            <option value="" disabled selected th:text="#{dispatch.line.product_placeholder}">Selecciona Producto...</option>
+                                            <option th:each="prod : ${productes}" th:value="${prod.id}" th:text="${prod.nom} + ' - ' + ${prod.descripcio}"></option>
+                                        </select>
+                                        <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex flex-col gap-2">
+                                    <label class="text-sm font-bold text-secondary uppercase tracking-wider" th:text="#{dispatch.line.units}">Cantidad (Uds) *</label>
+                                    <input th:field="*{linies[__${stat.index}__].quantitat}" class="input-uds w-full bg-white border-none rounded-xl py-3 px-4 text-on-surface font-bold focus:ring-2 focus:ring-primary text-center" placeholder="0" type="number" min="1" required/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-end pt-6 border-t border-outline-variant/30">
+                        <button type="submit" class="w-full md:w-auto bg-primary hover:opacity-90 text-white font-bold text-xl py-5 px-10 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-4">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+                            <span th:text="#{dispatch.btn.save}">Guardar Albarán</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script th:inline="javascript">
+        let isDirty = false;
+        let isPreloading = false; // Flag para no marcar isDirty durante la precarga
+        
+        // Limpiamos los ceros iniciales y avisamos de cambios sin guardar
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll('.input-uds').forEach(input => {
+                if(input.value === '0') input.value = '';
+            });
+
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('input', () => { if (!isPreloading) isDirty = true; });
+                form.addEventListener('change', () => { if (!isPreloading) isDirty = true; });
+                form.addEventListener('submit', () => { isDirty = false; });
+            }
+
+            window.addEventListener('beforeunload', function (e) {
+                if (isDirty) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
+
+            const contenedorLotes = document.getElementById('contenedor-lotes');
+            if (contenedorLotes) {
+                contenedorLotes.addEventListener('change', function(e) {
+                    if (e.target.tagName === 'SELECT') {
+                        updateProductDropdowns();
+                    }
+                });
+            }
+
+            // === AUTO-PRECARGA DESDE COMANDA ===
+            const clientSelect = document.querySelector('select[name="nifClient"]');
+            const dataInput = document.querySelector('input[name="dataProduccio"]');
+            const banner = document.getElementById('comanda-banner');
+
+            if (clientSelect && dataInput) {
+                const checkComanda = async () => {
+                    const nif = clientSelect.value;
+                    const datetimeVal = dataInput.value; // formato: 2026-05-21T10:30
+                    if (!nif || !datetimeVal) return;
+
+                    // Extraemos solo la fecha (YYYY-MM-DD) del datetime-local
+                    const dataOnly = datetimeVal.substring(0, 10);
+
+                    try {
+                        const resp = await fetch(`/comandes/comprovar?nifClient=${encodeURIComponent(nif)}&data=${dataOnly}`);
+                        if (!resp.ok) return;
+                        const json = await resp.json();
+
+                        if (json.found && json.linies && json.linies.length > 0) {
+                            isPreloading = true;
+                            // Limpiar filas existentes dejando solo la primera
+                            const contenedor = document.getElementById('contenedor-lotes');
+                            const filasExistentes = contenedor.querySelectorAll('.fila-lote');
+                            for (let i = filasExistentes.length - 1; i > 0; i--) {
+                                filasExistentes[i].remove();
+                            }
+
+                            // Rellenar la primera fila con la primera línea de la comanda
+                            const primeraFila = contenedor.querySelector('.fila-lote');
+                            const primerSelect = primeraFila.querySelector('select');
+                            const primerInput = primeraFila.querySelector('input[type="number"]');
+                            primerSelect.value = json.linies[0].producteId;
+                            primerInput.value = json.linies[0].quantitat;
+
+                            // Crear filas adicionales para el resto de líneas
+                            for (let i = 1; i < json.linies.length; i++) {
+                                agregarLinea();
+                                const filas = contenedor.querySelectorAll('.fila-lote');
+                                const nuevaFila = filas[filas.length - 1];
+                                nuevaFila.querySelector('select').value = json.linies[i].producteId;
+                                nuevaFila.querySelector('input[type="number"]').value = json.linies[i].quantitat;
+                            }
+
+                            banner.classList.remove('hidden');
+                            isPreloading = false;
+                            updateProductDropdowns();
+                        } else {
+                            // No hay comanda: ocultar banner y limpiar solo si había una comanda previa cargada
+                            if (!banner.classList.contains('hidden')) {
+                                limpiarFormularioProductos();
+                            }
+                            banner.classList.add('hidden');
+                        }
+                    } catch (err) {
+                        console.error('Error consultando comanda:', err);
+                    }
+                };
+
+                clientSelect.addEventListener('change', checkComanda);
+                dataInput.addEventListener('change', checkComanda);
+            }
+        });
+
+        // Función para limpiar todas las filas y dejar una vacía
+        function limpiarFormularioProductos() {
+            const contenedor = document.getElementById('contenedor-lotes');
+            const filas = contenedor.querySelectorAll('.fila-lote');
+            for (let i = filas.length - 1; i > 0; i--) {
+                filas[i].remove();
+            }
+            const primeraFila = contenedor.querySelector('.fila-lote');
+            if (primeraFila) {
+                primeraFila.querySelector('select').value = '';
+                const numInput = primeraFila.querySelector('input[type="number"]');
+                if (numInput) numInput.value = '';
+            }
+            updateProductDropdowns();
+        }
+
+        // Lógica de filas dinámicas (sin OCR, súper rápida)
+        function agregarLinea() {
+            const contenedor = document.getElementById('contenedor-lotes');
+            const filas = contenedor.getElementsByClassName('fila-lote');
+            
+            const nuevaFila = filas[0].cloneNode(true);
+            const nuevoIndex = filas.length;
+            
+            nuevaFila.querySelector('.numero-fila').innerText = nuevoIndex + 1;
+            
+            const inputs = nuevaFila.querySelectorAll('select, input');
+            inputs.forEach(input => {
+                const oldName = input.getAttribute('name');
+                if(oldName) {
+                    const newName = oldName.replace(/\[\d+\]/, '[' + nuevoIndex + ']');
+                    input.setAttribute('name', newName);
+                }
+                input.value = ''; 
+            });
+
+            nuevaFila.style.opacity = '0';
+            contenedor.appendChild(nuevaFila);
+            setTimeout(() => nuevaFila.style.opacity = '1', 10);
+            updateProductDropdowns();
+        }
+
+        function eliminarLinea(btn) {
+            const filas = document.getElementsByClassName('fila-lote');
+            if (filas.length > 1) {
+                const fila = btn.closest('.fila-lote');
+                fila.remove();
+                reordenarIndices();
+                updateProductDropdowns();
+            } else {
+                alert([[#{dispatch.alert.min_lines}]]);
+            }
+        }
+
+        function reordenarIndices() {
+            const filas = document.getElementsByClassName('fila-lote');
+            for (let i = 0; i < filas.length; i++) {
+                filas[i].querySelector('.numero-fila').innerText = i + 1;
+                const inputs = filas[i].querySelectorAll('select, input');
+                inputs.forEach(input => {
+                    const oldName = input.getAttribute('name');
+                    if(oldName) {
+                        const newName = oldName.replace(/\[\d+\]/, '[' + i + ']');
+                        input.setAttribute('name', newName);
+                    }   
+                });
+            }
+        }
+
+        function updateProductDropdowns() {
+            const selects = document.querySelectorAll('#contenedor-lotes select');
+            const selectedValues = Array.from(selects).map(s => s.value).filter(v => v !== '');
+
+            selects.forEach(select => {
+                const currentValue = select.value;
+                Array.from(select.options).forEach(option => {
+                    if (option.value === '') return; // Skip placeholder
+                    if (selectedValues.includes(option.value) && option.value !== currentValue) {
+                        option.hidden = true;
+                        option.disabled = true;
+                    } else {
+                        option.hidden = false;
+                        option.disabled = false;
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">EasyTraza</string>
+
+    <!-- General -->
+    <string name="btn_ok">OK</string>
+    <string name="btn_cancel">Cancel·lar</string>
+    <string name="btn_back">Tornar</string>
+    <string name="btn_home">Inici</string>
+    <string name="btn_save">Guardar</string>
+    <string name="alert_error">Error</string>
+    <string name="alert_success">Èxit!</string>
+    <string name="settings">Ajustos</string>
+
+    <!-- LoginScreen -->
+    <string name="login_who">Qui està treballant?</string>
+    <string name="login_select_profile">Selecciona el teu perfil d\'operador</string>
+    <string name="login_error_profiles">No s\'ha pogut carregar cap perfil.\nComprova la connexió amb el servidor.</string>
+    <string name="login_pull_retry">↓ Arrossega cap avall per reintentar</string>
+    <string name="logo_desc">Logo EasyTraza</string>
+
+    <!-- DashboardScreen -->
+    <string name="dashboard_hello">Hola,</string>
+    <string name="dashboard_btn_receive">Rebre\nAlbarà</string>
+    <string name="dashboard_btn_start_lot">Iniciar\nLot</string>
+    <string name="dashboard_btn_end_lot">Finalitzar\nLot</string>
+    <string name="dashboard_btn_logout">Tancar\nSessió</string>
+
+    <!-- IpScreen -->
+    <string name="ip_system">SISTEMA</string>
+    <string name="ip_title">Configuració del Servidor</string>
+    <string name="ip_desc">Configureu l\'adreça IP del servidor central per establir la connexió.</string>
+    <string name="ip_label">ADREÇA IP</string>
+    <string name="ip_placeholder">Ex: 192.168.1.50</string>
+    <string name="ip_btn_test">Provar</string>
+
+    <!-- Strings per activity_main.xml (Legacy) -->
+    <string name="hint_ip">Ex: 192.168.1.50</string>
+    <string name="btn_guardar">Guardar</string>
+    <string name="tv_ip_actual">IP Actual:</string>
+
+    <!-- CerrarSesionScreen -->
+    <string name="logout_title">Tancar Sessió</string>
+    <string name="logout_desc">Voleu finalitzar la vostra sessió de treball actual en el sistema de traçabilitat?</string>
+    <string name="logout_btn">TANCAR SESSIÓ</string>
+    <string name="logout_btn_back">Tornar al Dashboard</string>
+
+    <!-- IniciarLotScreen / FinalitzarLotScreen -->
+    <string name="lot_new_process">NOU PROCÉS</string>
+    <string name="lot_start_title">Seleccionar Lot</string>
+    <string name="lot_start_desc">Seleccioneu la matèria primera en estoc per configurar l\'inici.</string>
+    <string name="lot_empty_stock">No hi ha lots en estoc preparats.</string>
+    <string name="lot_prefix">Lot #%1$s</string>
+    <string name="lot_mat_prima">Matèria Primera</string>
+    <string name="lot_config">CONFIGURACIÓ</string>
+    <string name="lot_start_config_title">Iniciar Lot</string>
+    <string name="lot_prod_date">Data de Producció</string>
+    <string name="lot_to_start">Lot a Iniciar</string>
+    <string name="lot_mat_associated">Matèria Primera Associada</string>
+    <string name="lot_unknown">Desconeguda</string>
+    <string name="lot_btn_start">INICIAR PRODUCCIÓ</string>
+    <string name="lot_alert_open_title">Lot anterior detectat</string>
+    <string name="lot_alert_open_desc">S\'ha detectat un lot d\'aquesta matèria primera obert. Voleu finalitzar l\'anterior i iniciar aquest?</string>
+    <string name="lot_alert_open_confirm">Tancar anterior i Iniciar</string>
+
+    <string name="lot_end_process">TANCAMENT OPERATIU</string>
+    <string name="lot_end_title">Finalitzar Lot</string>
+    <string name="lot_end_desc">Seleccioneu el lot obert per procedir al seu tancament.</string>
+    <string name="lot_empty_open">No hi ha cap lot obert actualment.</string>
+    <string name="lot_end_confirm">CONFIRMACIÓ</string>
+    <string name="lot_end_detail">Detall del Lot</string>
+    <string name="lot_to_end">Lot a Tancar</string>
+    <string name="lot_btn_end">Finalitzar i Tancar Lot</string>
+
+    <!-- RecepcioScreen -->
+    <string name="rec_title">Recepció d\'Albarà</string>
+    <string name="rec_desc">Registreu l\'entrada de nova matèria primera.</string>
+    <string name="rec_processing">Processant imatge...</string>
+    <string name="rec_select">Seleccionar Albarà</string>
+    <string name="rec_select_desc">Pugeu una foto des dels vostres fitxers.</string>
+    <string name="rec_doc_data">Dades del Document</string>
+    <string name="rec_prov_cif">CIF Proveïdor *</string>
+    <string name="rec_prov_not_found">Cap proveïdor trobat</string>
+    <string name="rec_prov_registered">✅ Proveïdor registrat: %1$s</string>
+    <string name="rec_prov_new">⚠️ CIF no registrat. Empleneu el nom per crear-lo.</string>
+    <string name="rec_prov_name_new">Nom Comercial Nou *</string>
+    <string name="rec_date">Data (YYYY-MM-DD) *</string>
+    <string name="rec_prod_lines">Línies de Producte</string>
+    <string name="rec_row">FILA %1$d</string>
+    <string name="rec_mat_not_found">Cap matèria trobada</string>
+    <string name="rec_mat_new">Matèria no detectada a la BD. Es crearà automàticament.</string>
+    <string name="rec_lot_number">Núm Lot</string>
+    <string name="rec_units">Uts</string>
+    <string name="rec_btn_add_row">+ Afegir altra fila</string>
+    <string name="rec_btn_save">Guardar en Estoc</string>
+    <string name="rec_btn_delete">Esborrar</string>
+</resources>

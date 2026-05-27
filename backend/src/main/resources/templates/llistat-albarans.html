@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title th:text="'EasyTraza - ' + #{albarans.title}">EasyTraza - Historial de Albaranes</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-container": "#bb5808", "on-secondary-container": "#783603",
+                        "secondary": "#934b19", "on-surface": "#1e1b13",
+                        "surface-container": "#f5edde", "secondary-container": "#ffa26a",
+                        "surface-container-low": "#fbf3e4", "on-surface-variant": "#564338",
+                        "surface-container-highest": "#e9e2d3", "on-primary": "#ffffff",
+                        "primary": "#974400", "on-error": "#ffffff", "surface": "#fff8ef",
+                        "error-container": "#ffdad6", "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff", "outline-variant": "#ddc1b3",
+                    },
+                    fontFamily: {
+                        "headline": ["Lexend"], "body": ["Lexend"], "label": ["Lexend"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Lexend', sans-serif; min-height: 100dvh; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex overflow-x-hidden relative">
+
+    <div th:replace="~{fragments/navbar :: menu-lateral('historial-albarans')}"></div>
+
+    <main class="flex-1 md:ml-80 flex flex-col min-h-screen transition-all duration-300">
+        <div class="p-6 md:p-8 lg:px-16 lg:py-8 max-w-7xl mx-auto w-full flex-1 flex flex-col">
+            
+            <div th:if="${success}" class="bg-green-100 text-green-800 p-4 rounded-xl mb-6 font-bold flex items-center gap-2">
+                <span class="material-symbols-outlined">check_circle</span> <span th:text="${success}"></span>
+            </div>
+            <div th:if="${error}" class="bg-error-container text-on-error-container p-4 rounded-xl mb-6 font-bold flex items-center gap-2">
+                <span class="material-symbols-outlined">error</span> <span th:text="${error}"></span>
+            </div>
+
+            <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                <div>
+                    <h1 class="text-4xl lg:text-5xl font-black text-on-surface tracking-tighter mb-2" th:text="#{albarans.title}">Historial de Albaranes</h1>
+                    <p class="text-lg text-on-surface-variant max-w-2xl" th:text="#{albarans.subtitle}">Registro detallado de recepciones y trazabilidad de materias primas entrantes.</p>
+                </div>
+                <a th:href="@{/recepcio}" class="bg-gradient-to-br from-primary to-primary-container text-on-primary h-16 px-8 rounded-2xl flex items-center justify-center gap-3 hover:opacity-90 transition-all shadow-lg shadow-primary/20 hover:-translate-y-1 font-bold text-lg">
+                    <span class="material-symbols-outlined">add_circle</span> <span th:text="#{albarans.btn.new}">Nuevo Albarán</span>
+                </a>
+            </div>
+
+            <section class="bg-surface-container-low rounded-2xl p-6 mb-10">
+                <form th:action="@{/historial-albarans}" method="get" class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+                    
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs uppercase tracking-widest text-on-surface-variant font-bold" th:text="#{albarans.filter.provider}">Proveedor</label>
+                        <div class="relative">
+                            <select name="cif" class="w-full h-14 bg-surface-container-highest border-none rounded-xl text-on-surface font-medium px-4 appearance-none focus:ring-2 focus:ring-primary outline-none">
+                                <option value="" th:text="#{albarans.filter.provider_all}">Todos los proveedores</option>
+                                <option th:each="prov : ${proveidors}" th:value="${prov.cif}" th:text="${prov.nom}" th:selected="${prov.cif == filtreCif}"></option>
+                            </select>
+                            <span class="material-symbols-outlined absolute right-4 top-4 text-on-surface-variant pointer-events-none">expand_more</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs uppercase tracking-widest text-on-surface-variant font-bold" th:text="#{albarans.filter.raw_mat}">Materia Prima</label>
+                        <div class="relative">
+                            <select name="materiaId" class="w-full h-14 bg-surface-container-highest border-none rounded-xl text-on-surface font-medium px-4 appearance-none focus:ring-2 focus:ring-primary outline-none">
+                                <option value="" th:text="#{albarans.filter.raw_mat_all}">Todas las materias</option>
+                                <option th:each="mat : ${materies}" th:value="${mat.id}" th:text="${mat.nom}" th:selected="${mat.id == filtreMateria}"></option>
+                            </select>
+                            <span class="material-symbols-outlined absolute right-4 top-4 text-on-surface-variant pointer-events-none">expand_more</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-4 md:col-span-2">
+                        <button type="submit" class="flex-1 h-14 bg-secondary text-on-primary rounded-xl font-bold hover:opacity-90 transition-colors flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-sm">filter_list</span> <span th:text="#{albarans.btn.filter}">Filtrar</span>
+                        </button>
+                        <a th:href="@{/historial-albarans}" class="h-14 w-14 bg-surface-container-highest text-on-surface-variant rounded-xl hover:bg-surface-container transition-colors flex items-center justify-center" th:title="#{albarans.btn.clear}">
+                            <span class="material-symbols-outlined">mop</span>
+                        </a>
+                    </div>
+                </form>
+            </section>
+
+            <section class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm border border-outline-variant/30">
+                <div class="hidden md:grid grid-cols-5 gap-4 px-8 py-5 bg-surface-container-low text-xs uppercase tracking-widest text-on-surface-variant font-bold">
+                    <div th:text="#{albarans.table.id}">ID Albarán</div>
+                    <div th:text="#{albarans.table.date}">Fecha</div>
+                    <div th:text="#{albarans.table.provider}">Proveedor</div>
+                    <div th:text="#{albarans.table.lots}">Lotes Recibidos</div>
+                    <div class="text-right" th:text="#{albarans.table.actions}">Acciones</div>
+                </div>
+                
+                <div class="flex flex-col">
+                    
+                    <div th:if="${#lists.isEmpty(albarans)}" class="p-10 text-center text-on-surface-variant font-bold" th:text="#{albarans.table.empty}">
+                        No se han encontrado albaranes con estos filtros.
+                    </div>
+
+                    <div th:each="albara : ${albarans}">
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 px-6 md:px-8 py-6 items-center hover:bg-surface-container transition-colors group">
+                            
+                            <div class="flex items-center gap-3">
+                                <div class="h-10 w-10 rounded-lg bg-primary-container/10 flex items-center justify-center text-primary">
+                                    <span class="material-symbols-outlined text-lg">receipt</span>
+                                </div>
+                                <div>
+                                    <span class="md:hidden text-[10px] uppercase tracking-wider text-on-surface-variant block mb-1" th:text="#{albarans.table.id}">ID Albarán</span>
+                                    <span class="font-semibold text-on-surface" th:text="'#ALB-' + ${albara.id}">#ALB-001</span>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <span class="md:hidden text-[10px] uppercase tracking-wider text-on-surface-variant block mb-1" th:text="#{albarans.table.date}">Fecha</span>
+                                <span class="text-on-surface font-bold" th:text="${albara.dataRecepcio}">04 Feb 2026</span>
+                            </div>
+                            
+                            <div>
+                                <span class="md:hidden text-[10px] uppercase tracking-wider text-on-surface-variant block mb-1" th:text="#{albarans.table.provider}">Proveedor</span>
+                                <div class="flex flex-col">
+                                    <span class="font-bold text-on-surface" th:text="${albara.proveidor.nom}">Harinas La Meta</span>
+                                    <span class="text-xs text-on-surface-variant" th:text="${albara.proveidor.cif}">J123456</span>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <span class="md:hidden text-[10px] uppercase tracking-wider text-on-surface-variant block mb-1" th:text="#{albarans.table.lots}">Lotes Recibidos</span>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-sm font-bold" th:text="${#lists.size(albara.lots)} + ' ' + #{albarans.badge.products}">
+                                    Productos
+                                </span>
+                            </div>
+                            
+                            <div class="flex md:justify-end mt-4 md:mt-0 gap-2">
+                                <button th:if="${albara.fotoAlbaraUrl != null and albara.fotoAlbaraUrl != ''}"
+                                    type="button"
+                                    th:data-url="${albara.fotoAlbaraUrl}"
+                                    onclick="abrirModalImagen(this)"
+                                    class="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary-container/20 text-primary font-medium hover:bg-primary hover:text-white transition-colors justify-center" title="Ver Documento">
+                                    <span class="material-symbols-outlined text-sm">image</span>
+                                </button>
+                                
+                                <a th:if="${!albaransAmbLotsBloqueants[albara.id]}" th:href="@{/historial-albarans/eliminar/{id}(id=${albara.id})}" th:data-confirm="#{albarans.btn.delete_confirm}" onclick="return confirm(this.getAttribute('data-confirm'));" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-error-container text-error font-medium hover:bg-error hover:text-white transition-colors justify-center" th:title="#{albarans.btn.delete}">
+                                    <span class="material-symbols-outlined text-sm">delete</span>
+                                </a>
+                                <div th:if="${albaransAmbLotsBloqueants[albara.id]}" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-container-highest text-on-surface-variant/50 font-medium cursor-default" th:title="#{albarans.btn.locked}">
+                                    <span class="material-symbols-outlined text-sm">lock</span>
+                                </div>
+
+                                <button type="button"
+                                    th:data-id="${albara.id}"
+                                    th:data-fecha="${albara.dataRecepcio}"
+                                    th:data-cif="${albara.proveidor.cif}"
+                                    onclick="abrirModalEdicion(this)"
+                                    class="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-container-highest text-primary font-medium hover:bg-primary hover:text-white transition-colors justify-center" th:title="#{albarans.btn.edit}">
+                                    <span class="material-symbols-outlined text-sm">edit</span>
+                                </button>
+                                
+                                <a th:href="@{/lotes(albaraId=${albara.id}, cif=${albara.proveidor.cif})}" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-container-highest text-primary font-medium hover:bg-primary hover:text-white transition-colors w-full md:w-auto justify-center">
+                                    <span class="material-symbols-outlined text-sm">visibility</span> <span th:text="#{albarans.btn.view_lots}">Ver Lotes</span>
+                                </a>
+                            </div>
+
+                        </div>
+                        <div class="h-[2px] w-full bg-surface"></div>
+                    </div>
+                    
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- ===== MODAL DE EDICIÓN ===== -->
+    <div id="modal-edicion" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="cerrarModalSiFondo(event)">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-black text-on-surface flex items-center gap-2">
+                    <span th:text="#{albarans.modal.edit.title}">Editar Albarán</span> 
+                    <span id="modal-albara-id" class="text-primary"></span>
+                </h2>
+                <button onclick="cerrarModal()" class="p-2 rounded-full hover:bg-surface-container transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="form-edicion" method="post" class="space-y-6">
+                <input type="hidden" name="_method" value="POST"/>
+
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-bold text-secondary uppercase tracking-wider" th:text="#{albarans.modal.edit.date}">Fecha de Recepción</label>
+                    <input id="modal-fecha" name="dataRecepcio" type="date"
+                           class="w-full bg-surface-container-highest border-none rounded-xl py-4 px-4 text-on-surface font-medium focus:ring-2 focus:ring-primary" required/>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-bold text-secondary uppercase tracking-wider" th:text="#{albarans.modal.edit.provider}">Proveedor</label>
+                    <div class="relative">
+                        <select id="modal-cif" name="cifProveidor"
+                                class="w-full bg-surface-container-highest border-none rounded-xl py-4 pl-4 pr-12 text-on-surface font-medium focus:ring-2 focus:ring-primary appearance-none cursor-pointer" required>
+                            <option th:each="prov : ${proveidors}" th:value="${prov.cif}" th:text="${prov.nom}"></option>
+                        </select>
+                        <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 pt-2">
+                    <button type="button" onclick="cerrarModal()" class="flex-1 py-4 rounded-xl bg-surface-container-highest text-on-surface font-bold hover:bg-surface-container transition-colors" th:text="#{albarans.modal.edit.cancel}">Cancelar</button>
+                    <button type="submit" class="flex-1 py-4 rounded-xl bg-primary text-white font-bold hover:opacity-90 transition-colors flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined">save</span> <span th:text="#{albarans.modal.edit.save}">Guardar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== MODAL DE IMAGEN ===== -->
+    <div id="modal-imagen" class="hidden fixed inset-0 bg-black/80 z-[60] flex flex-col items-center justify-center p-4 backdrop-blur-sm" onclick="cerrarModalImagenSiFondo(event)">
+        <div class="w-full max-w-5xl max-h-[90vh] flex flex-col items-center justify-center relative">
+            <button onclick="cerrarModalImagen()" class="absolute -top-12 right-0 md:-right-12 p-2 text-white/70 hover:text-white transition-colors">
+                <span class="material-symbols-outlined text-4xl">close</span>
+            </button>
+            <img id="modal-img-src" src="" alt="Albarán Escaneado" class="max-w-full max-h-[75vh] object-contain rounded-2xl shadow-2xl">
+            <a id="modal-img-download" href="" target="_blank" class="mt-6 flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-bold hover:opacity-90 transition-all shadow-lg hover:-translate-y-1">
+                <span class="material-symbols-outlined">open_in_new</span> Abrir en nueva pestaña
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function abrirModalEdicion(btn) {
+            const id = btn.dataset.id;
+            const fecha = btn.dataset.fecha;
+            const cif = btn.dataset.cif;
+
+            document.getElementById('modal-albara-id').textContent = '#ALB-' + id;
+            document.getElementById('modal-fecha').value = fecha;
+            document.getElementById('modal-cif').value = cif;
+            document.getElementById('form-edicion').action = '/historial-albarans/editar/' + id;
+
+            document.getElementById('modal-edicion').classList.remove('hidden');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal-edicion').classList.add('hidden');
+        }
+
+        function cerrarModalSiFondo(event) {
+            if (event.target === document.getElementById('modal-edicion')) cerrarModal();
+        }
+
+        function abrirModalImagen(btn) {
+            const url = btn.dataset.url;
+            document.getElementById('modal-img-src').src = url;
+            document.getElementById('modal-img-download').href = url;
+            document.getElementById('modal-imagen').classList.remove('hidden');
+        }
+
+        function cerrarModalImagen() {
+            document.getElementById('modal-imagen').classList.add('hidden');
+            document.getElementById('modal-img-src').src = "";
+        }
+
+        function cerrarModalImagenSiFondo(event) {
+            if (event.target === document.getElementById('modal-imagen')) cerrarModalImagen();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,681 @@
+= EASYTRAZA
+:toc: left
+:toc-title: Índex
+:sectnums:
+:icons: font
+
+[.text-center]
+image::https://via.placeholder.com/300x150?text=LOGO+EASYTRAZA[Logo EasyTraza, align="center"]
+// RECORDA: Canvia aquest enllaç per la imatge del teu logo real
+
+[.text-center]
+*Projecte ABP - Traçabilitat en panificadora artesanal* +
+*Autor:* Hamza Rourou +
+*Equip docent:* Manel Orós Cuenca, Esther Sanchez Batlló, Eduard Santamaria +
+*Institut:* Institut Nicolau Copèrnic +
+*Curs:* 2025 - 2026
+
+<<<
+
+== Introducció
+
+=== Contextualització de l'empresa i objectius
+
+EasyTraza és una aplicació orientada a la gestió de la traçabilitat dins d'una panificadora artesanal (Saint Honoré), empresa amb dos obradors (Terrassa i Matadepera) que subministra productes a forns de pa i negocis del sector.
+
+Actualment, la traçabilitat es realitza de manera completament manual (amb paper i bolígraf), fet que implica aproximadament 1 hora diària en tasques administratives i dificultat per reaccionar ràpidament davant problemes sanitaris. L'obrador pot rebre entre 20 i 30 productes al dia i fins a 150 lots al mes a la pastisseria associada.
+
+L'objectiu principal del projecte és implementar una solució digital que permeti:
+
+* Automatitzar la traçabilitat dels ingredients (connectant cada sac de farina amb el producte final).
+* Reduir el temps de resposta davant incidències de seguretat alimentària (de hores a segons).
+* Millorar el control sanitari de l'obrador (com el pH de l'aigua).
+* Digitalitzar l'entrada de dades mitjançant la lectura d'albarans per OCR.
+* Facilitar les inspeccions sanitàries proporcionant documentació històrica completa.
+
+=== Resum del projecte
+
+EasyTraza és una aplicació mòbil Android (amb accés web complementari per a PC) que digitalitza de manera integral el procés de traçabilitat de la panificadora artesanal Saint Honoré.
+
+Les funcionalitats principals de l'aplicació s'adapten als processos del dia a dia de l'obrador de la manera següent:
+
+* **Recepció de mercaderia:** Quan arriba una entrega, el treballador fotografiarà l'albarà del proveïdor des del mòbil. El sistema extraurà automàticament les dades (proveïdor, número de lot, caducitat, quantitat) i permetrà editar-les si l'OCR comet algun error. En qüestió de segons, el lot quedarà registrat al sistema.
+* **Gestió de lots:** Quan s'obre un sac, el treballador prem "Iniciar lot" amb un sol botó. El sistema tanca automàticament l'anterior lot del mateix ingredient i suggereix sempre l'ordre FIFO (primer el que caduca abans). Els estats dels lots (Rebut, Iniciat, Finalitzat, Entregat, Retornat) es gestionen manualment.
+* **Control sanitari del pH:** El sistema recorda automàticament cada 2-3 dies que cal mesurar el pH de l'aigua. La notificació és persistent fins que s'introdueix el valor; si ningú hi fa cas en 24 hores, s'escala a tots els treballadors.
+* **Traçabilitat i incidències:** Si un proveïdor comunica que un lot està en mal estat, el treballador cerca el número de lot i en segons obté la llista de productes finals afectats i els telèfons dels clients que els han rebut per poder trucar-los.
+* **Informes mensuals:** A final de mes, el sistema genera automàticament un resum de tota la producció i les vendes, exportable a PDF per a inspeccions sanitàries.
+
+== Acta de les reunions amb el client
+
+=== Dades de la reunió
+
+[cols="1,3"]
+|===
+| Camp | Detall
+| Data | 16 de març de 2026
+| Hora | 11:30 - 13:30
+| Lloc | Institut Nicolau Copèrnic (Aula 2.01)
+| Modalitat | Presencial
+| Assistents | Rafa Morante (Resp. Producció Saint Honoré), Hamza Rourou i equip docent
+|===
+
+=== Situació actual de l'empresa
+
+* Tota la gestió es fa en paper: registre manual d'albarans, etiquetes, números de lot, proveïdor i data.
+* El procés és lent i consumeix aproximadament 1 hora diària en tasques administratives.
+* Quan apareix una incidència, cal revisar manualment tots els registres per identificar productes afectats i clients.
+* Les inspeccions sanitàries poden sol·licitar documentació històrica completa, que actualment és difícil de proporcionar amb agilitat.
+* El contacte amb clients afectats es fa sempre per telèfon, mai de forma digital automàtica.
+
+=== Desenvolupament cronològic de la reunió
+
+* **Fase 1 - Problema principal:** El client explica que la principal problemàtica és la pèrdua de temps fent la traçabilitat a mà. Es necessita una solució digital ràpida que connecti ingredients amb productes finals.
+* **Fase 2 - Gestió d'usuaris i dispositius:** S'acorda que tots els treballadors tindran els mateixos permisos i qualsevol podrà crear nous usuaris. S'utilitzarà un login molt senzill (tipus Netflix) en mòbils personals i compartits.
+* **Fase 3 - Escaneig d'albarans i lògica de negoci:** L'aplicació ha d'escanejar els albarans per extreure les dades amb OCR. S'estableix com funciona l'estoc: un article només ve d'un proveïdor, un albarà porta diversos lots i un lot s'utilitza per a molts productes finals. Els canvis d'estat dels lots es faran sempre manualment. El sistema ha de suggerir l'ús de lots seguint la lògica FIFO.
+* **Fase 4 - Controls sanitaris i informes:** S'acorda que el sistema ha de generar recordatoris per mesurar el pH cada 2-3 dies. Es necessiten filtres de cerca i la capacitat de generar un informe mensual en PDF. Es remarca que les dades no s'han d'esborrar mai i s'han de conservar un mínim de 5 mesos.
+
+=== Preguntes resoltes i aclariments (Q&A)
+
+[cols="2,3", options="header"]
+|===
+| Pregunta | Resposta del client (Rafa Morante)
+
+| Cal fer foto a la matèria primera física (sac, etiqueta)?
+| **No cal fer foto a la matèria primera.** Com que el número de lot ja apareix a l'albarà, no és necessari escanejar el producte físic. En cas d'incidència, la comprovació serà humana.
+
+| L'obrador rep lots o matèries primeres sense albarà associat?
+| **No. Tots els productes vindran sempre amb el seu albarà**, ja que aquest albarà al final de mes es transforma en factura.
+
+| Ingredient en mal estat: com s'actua?
+| El sistema ha de localitzar immediatament els productes afectats i generar la llista de clients a contactar per telèfon.
+
+| S'han de fer comandes automàtiques als proveïdors?
+| No. No es vol automatitzar la comanda a proveïdors.
+
+| Com s'introdueixen els clients?
+| Entrada manual o per escaneig.
+
+| Quin és el format d'inici de sessió?
+| Selecció d'usuari per llista (estil Netflix), sense contrasenya.
+|===
+
+== Requisits funcionals
+
+=== RF01 – Inici de sessió
+
+El treballador accedeix a la pantalla principal de l'aplicació i selecciona el seu nom d'una llista de perfils (estil Netflix).
+
+* El sistema mostra la llista de tots els treballadors donats d'alta.
+* El treballador selecciona el seu nom i accedeix directament al dashboard. No es requereix contrasenya.
+* El sistema registra automàticament al log d'activitat quina sessió s'ha iniciat, amb data i hora (RF29).
+* Si no hi ha cap treballador donat d'alta al sistema, el sistema mostra directament la pantalla de creació del primer usuari (RF02).
+
+=== RF02 – Creació d'usuari
+
+Qualsevol treballador pot donar d'alta un nou company al sistema.
+
+* El treballador accedeix a l'opció "Nou treballador" des del menú.
+* El sistema demana únicament el nom del nou treballador.
+* Si el nom ja existeix, el sistema informa que ja hi ha un treballador amb aquest nom i demana que s'introdueixi un nom diferent.
+* Si el nom és nou, el sistema desa el treballador i el fa visible a la llista de selecció d'inici de sessió.
+
+=== RF03 – Escaneig d'albarà amb càmera
+
+El treballador inicia el procés de recepció d'una nova entrega escanejant l'albarà físic del proveïdor.
+
+* El treballador selecciona "Escanejar albarà" des del dashboard.
+* El sistema obre la càmera del dispositiu.
+* El treballador enfoca el document i captura la imatge.
+* El sistema desa la imatge original i la passa automàticament al motor d'OCR (RF04).
+* *Nota:* No s'escaneja la matèria primera física. El número de lot consta sempre a l'albarà.
+
+=== RF04 – Extracció automàtica de dades per OCR
+
+A partir de la imatge capturada, el sistema extreu automàticament les dades principals del document.
+
+* El sistema processa la imatge amb Google ML Kit i intenta identificar: proveïdor, article, quantitat, número de lot del proveïdor, data de recepció i data de caducitat.
+* Com que cada proveïdor té un format d'albarà diferent, l'OCR ha de ser flexible i no dependre d'una estructura fixa.
+* Si el sistema detecta amb suficient confiança tots els camps, els presenta preomplerts a la pantalla de validació (RF05).
+* Si algun camp no es pot llegir (imatge borrosa, taca de tinta, etc.), el camp queda buit i marcat visiblement perquè el treballador el completi manualment.
+
+=== RF05 – Validació i edició manual de dades OCR
+
+Abans de desar definitivament l'albarà, el treballador ha de revisar i confirmar les dades extretes.
+
+* El sistema mostra un formulari amb tots els camps detectats per l'OCR, editable camp a camp.
+* El treballador pot corregir qualsevol valor incorrectament llegit.
+* Tots els camps de l'albarà són obligatoris. Si hi ha camps buits, el sistema no permet desar i indica quins camps falten.
+* Si la data de caducitat detectada és igual o inferior a la data actual, el sistema mostra immediatament un avís d'alerta (RF26) però permet continuar.
+* Un cop el treballador confirma les dades, el sistema desa l'albarà i crea els lots associats (RF09).
+
+=== RF06 – Registre manual d'albarà (sense fotografia)
+
+En casos excepcionals (proveïdors que envien documentació en format digital, paper il·legible, etc.), el treballador pot registrar un albarà introduint les dades manualment sense fer fotografia.
+
+* El treballador selecciona "Introduir albarà manualment" des del dashboard.
+* El sistema mostra el mateix formulari que RF05 però completament buit.
+* El treballador omple tots els camps obligatòriament.
+* El sistema desa l'albarà i crea els lots associats (RF09).
+
+=== RF07 – Gestió d'articles
+
+El treballador pot consultar, afegir i editar els articles (matèries primeres) del catàleg del sistema.
+
+* El treballador accedeix a la secció "Articles" des del menú.
+* El sistema mostra la llista de tots els articles donats d'alta, amb el proveïdor associat i la unitat de mesura.
+* El treballador pot afegir un nou article indicant: nom, unitat de mesura i proveïdor associat.
+* Un article només pot estar associat a un únic proveïdor. Si el treballador selecciona un proveïdor diferent per a un article existent, el sistema avisa del conflicte.
+* El treballador pot editar el nom i la unitat de mesura d'un article existent.
+* Els articles no s'eliminen; es poden marcar com a inactius.
+
+=== RF08 – Gestió de proveïdors
+
+El treballador pot consultar, afegir i editar la informació dels proveïdors del sistema.
+
+* El treballador accedeix a la secció "Proveïdors" des del menú.
+* El sistema mostra la llista de tots els proveïdors donats d'alta, amb nom comercial i dades de contacte.
+* El treballador pot afegir un nou proveïdor indicant: nom comercial, telèfon de contacte i observacions (camp lliure).
+* El treballador pot editar qualsevol dada d'un proveïdor existent.
+* Des de la fitxa d'un proveïdor, el treballador pot veure tots els albarans i lots associats a aquell proveïdor.
+* Els proveïdors no tindran accés al sistema.
+
+=== RF09 – Recepció de lot (estat REBUT)
+
+Quan es confirma un albarà, el sistema crea automàticament els lots associats en estat REBUT.
+
+* Per cada lot inclòs a l'albarà, el sistema crea un registre de lot amb: número de lot del proveïdor, article, data de caducitat, quantitat i estat inicial "REBUT".
+* El lot queda vinculat a l'albarà del qual prové.
+* El sistema registra al log d'activitat (RF29) qui ha recepcionat el lot i en quin moment.
+* El lot apareix immediatament a la llista de lots disponibles per iniciar.
+
+=== RF10 – Registre de lot d'emergència
+
+En casos puntuals (compres a supermercats o proveïdors no habituals), el treballador pot registrar un lot sense albarà associat.
+
+* El treballador selecciona "Nou lot d'emergència" des del dashboard.
+* El sistema mostra un formulari per introduir manualment: article, proveïdor (pot ser nou o existent), número de lot, quantitat i data de caducitat.
+* El sistema marca internament el lot com `es_emergencia = TRUE` i el desa sense albarà associat.
+* El lot d'emergència apareix a la llista de lots amb una etiqueta visual que l'identifica com a tal.
+* El sistema registra al log d'activitat (RF29) qui ha creat el lot d'emergència.
+
+=== RF11 – Inici de lot
+
+El treballador inicia l'ús d'un lot quan comença a obrir el sac o el producte corresponent.
+
+* El treballador selecciona el lot de la llista i prem el botó "Iniciar lot".
+* El sistema comprova si ja hi ha un altre lot del mateix article en estat INICIAT.
+  ** Si n'hi ha un, el sistema el tanca automàticament canviant-lo a estat FINALITZAT (RF12) i registra l'acció al log (RF29).
+  ** Si no n'hi ha cap, el sistema passa directament el lot seleccionat a estat INICIAT.
+* El sistema registra al log d'activitat (RF29) qui ha iniciat el lot i en quin moment.
+
+=== RF12 – Finalització manual de lot
+
+El treballador marca un lot com a finalitzat quan el producte s'ha esgotat completament.
+
+* El treballador selecciona el lot en estat INICIAT i prem el botó "Finalitzar lot".
+* El sistema canvia l'estat del lot a FINALITZAT i registra data i hora de tancament.
+* El sistema registra al log d'activitat (RF29) qui ha finalitzat el lot.
+* El sistema comprova si hi ha un altre lot del mateix article en estat REBUT i, si és així, el suggereix per iniciar (RF14).
+
+=== RF13 – Canvi d'estat a ENTREGAT o RETORNAT
+
+El treballador pot marcar un lot com a entregat o retornat al proveïdor.
+
+* El treballador selecciona un lot i prem el botó "Marcar com entregat" o "Marcar com retornat".
+* El sistema canvia l'estat del lot i registra la data i hora de l'acció.
+* Un lot en estat RETORNAT queda exclòs de la suggerència FIFO.
+* El sistema registra al log d'activitat (RF29) qui ha fet el canvi d'estat.
+
+=== RF14 – Suggeriment FIFO
+
+El sistema suggereix activament quin lot d'una matèria primera s'ha d'utilitzar a continuació.
+
+* Quan el treballador consulta els lots disponibles d'un article, el sistema destaca visualment el lot amb la data de caducitat més propera (o el més antic si les dates coincideixen).
+* Quan es finalitza un lot (RF12), el sistema proposa automàticament el següent lot recomanat per FIFO.
+* La suggerència és informativa; el treballador pot ignorar-la i iniciar un altre lot manualment.
+
+=== RF15 – Vinculació lot-producte final
+
+El treballador registra quins lots s'han utilitat per elaborar un producte final concret.
+
+* El treballador accedeix a un producte final i selecciona "Afegir lots utilitzats".
+* El sistema mostra la llista de lots en estat INICIAT o FINALITZAT disponibles per vincular.
+* El treballador selecciona els lots i introdueix la quantitat usada de cadascun.
+* El sistema desa la relació lot-producte a la taula LOT_PRODUCTE.
+
+=== RF16 – Gestió de clients
+
+El treballador pot consultar, afegir i editar la informació dels clients del sistema.
+
+* El treballador accedeix a la secció "Clients" des del menú.
+* El sistema mostra la llista de tots els clients, amb nom, telèfon i observacions.
+* El treballador pot afegir un nou client introduint: nom, telèfon de contacte, comanda habitual (camp lliure) i observacions.
+* El treballador pot editar qualsevol dada d'un client existent, incloent-hi l'estat "de vacances" o "incidència activa" al camp d'observacions.
+* El telèfon del client és un camp clau: és el mitjà de contacte en cas d'incidència sanitària.
+
+=== RF17 – Registre de venda o entrega a client
+
+El treballador registra quins productes finals s'han lliurat a cada client.
+
+* El treballador accedeix a la secció "Nova venda" i selecciona el client, el producte final, la data i la quantitat.
+* El sistema desa la venda a la taula VENDA.
+* Des de la fitxa d'un client, es pot consultar l'historial complet de totes les vendes realitzades.
+
+=== RF18 – Traçabilitat ascendent
+
+A partir d'un lot, el treballador pot consultar tots els productes finals que s'han elaborat amb aquell lot i els clients als quals han estat lliurats.
+
+* El treballador accedeix a la secció "Traçabilitat" i cerca un lot per número de lot del proveïdor.
+* El sistema mostra: l'albarà d'origen, l'article associat, el proveïdor, els productes finals elaborats amb aquell lot, les quantitats i els clients que han rebut cada producte.
+* La consulta mostra també quins treballadors van manipular el lot en cada fase.
+* El sistema no mostra les receptes completes dels productes; només la relació entre lots i productes finals.
+
+=== RF19 – Traçabilitat descendent
+
+A partir d'un client o d'un producte final, el treballador pot consultar quins lots d'ingredients s'han fet servir.
+
+* El treballador accedeix a la secció "Traçabilitat" i cerca per nom de client o per producte final.
+* El sistema mostra tots els lots que han intervingut en l'elaboració dels productes lliurats al client seleccionat, amb proveïdor, número de lot i dates.
+
+=== RF20 – Gestió d'incidències sanitàries
+
+Quan es detecta un lot defectuós o en mal estat, el sistema genera immediatament la llista de clients afectats.
+
+* El treballador accedeix a "Incidències" i cerca el lot problemàtic per número de lot del proveïdor.
+* El sistema localitza tots els productes finals elaborats amb aquell lot.
+* El sistema genera una llista de clients afectats amb el nom i el telèfon de cadascun.
+* El treballador realitza les trucades telefòniques necessàries a partir d'aquesta llista.
+* El sistema no envia missatges ni correus automàtics als clients; el contacte és sempre per telèfon.
+
+=== RF21 – Registre manual de mesura de pH
+
+El treballador introdueix manualment el valor del pH de l'aigua quan realitza la comprovació periòdica.
+
+* El treballador accedeix a "Registre pH" o respon a la notificació pendent.
+* El sistema mostra un camp numèric per introduir el valor del pH.
+* El treballador introdueix el valor i prem confirmar.
+* El sistema desa el registre associant-lo al treballador que ha fet la mesura i la data i hora exactes.
+* La notificació persistent desapareix un cop s'ha registrat el valor.
+* El valor del pH és editable durant el període de validesa (fins a la propera mesura).
+
+=== RF22 – Recordatori persistent de pH
+
+El sistema genera automàticament un recordatori quan s'acosta el moment de la propera mesura de pH.
+
+* El sistema comprova periòdicament si han passat més de 2-3 dies des del darrer registre de pH.
+* Si s'ha superat el temps, el sistema genera una notificació persistent que apareix al dashboard i no desapareix fins que s'introdueixi un nou valor (RF21).
+* La notificació es mostra a tots els dispositius on hi hagi una sessió activa.
+
+=== RF23 – Escalat del recordatori de pH
+
+Si el recordatori de pH no s'atén, el sistema l'escala a tots els treballadors del sistema.
+
+* Si han passat més de 24 hores des que es va generar el recordatori (RF22) i encara no s'ha registrat cap valor, el sistema marca la notificació com a "urgent".
+* La notificació urgent apareix de forma destacada a tots els dispositius amb sessió activa.
+* Un cop algun treballador registra el valor de pH (RF21), la notificació desapareix per a tothom.
+
+=== RF24 – Alerta de caducitat en recepció d'albarà
+
+En el moment d'escanejar i validar un albarà, el sistema comprova les dates de caducitat dels lots i avisa si alguna és imminent o ja ha caducat.
+
+* Durant RF05, el sistema compara la data de caducitat de cada lot amb la data actual.
+* Si la data de caducitat és igual o inferior a la data actual, el sistema mostra un avís d'error: "Aquest lot ja ha caducat. Comprova la documentació."
+* Si la data de caducitat és en els propers 7 dies, el sistema mostra un avís d'advertència: "Aquest lot caduca aviat."
+* En tots dos casos, el treballador pot continuar desant el lot, però l'avís queda registrat al log.
+
+=== RF25 – Alertes periòdiques de caducitat
+
+El sistema comprova periòdicament els lots actius i avisa quan algun producte estigui pròxim a caducar.
+
+* El sistema executa una comprovació diària de tots els lots en estat REBUT o INICIAT.
+* Si algun lot caduca en els propers 7 dies, el sistema genera un avís visible al dashboard.
+* Els productes de vida útil curta (ou líquid, mantega, llet, làctics) tindran especial atenció i es mostrarà l'avís de forma destacada.
+* Les alertes romanen visibles al dashboard fins que el lot canvia d'estat a FINALITZAT, ENTREGAT o RETORNAT.
+
+=== RF26 – Cerca avançada amb filtres combinats
+
+El treballador pot cercar qualsevol element del sistema aplicant filtres simultanis.
+
+* El treballador accedeix a la barra de cerca des de qualsevol secció.
+* El sistema permet filtrar per: número de lot, proveïdor, nom d'article, client, data de recepció i data de caducitat.
+* Es poden combinar diversos filtres al mateix temps.
+* Els resultats es mostren en temps real a mesura que s'apliquen els filtres, de forma similar a una agenda telefònica.
+
+=== RF27 – Generació d'informe mensual
+
+Al final de cada mes, el sistema genera un resum de tota la producció, el consum i les vendes del període.
+
+* El treballador accedeix a "Informes" i selecciona el mes i l'any desitjats.
+* El sistema genera automàticament un informe que inclou: productes finals elaborats, lots consumits, quantitats d'ingredients utilitzades i llista de vendes per client.
+* L'informe és editable i revisable abans d'exportar-lo.
+* El sistema conserva un historial d'informes d'almenys 5 mesos accessible localment; els informes anteriors es consulten des del núvol.
+
+=== RF28 – Exportació i impressió en PDF
+
+El treballador pot exportar qualsevol informe o registre de traçabilitat en format PDF.
+
+* Des de la pantalla d'informes o de traçabilitat, el treballador prem "Exportar PDF".
+* El sistema genera el document PDF amb tota la informació visible en pantalla.
+* El treballador pot compartir el PDF per qualsevol canal del dispositiu (correu, WhatsApp, impressió, etc.).
+* Sanitat no exigeix un format específic; el PDF ha de contenir la informació de traçabilitat completa.
+
+=== RF29 – Registre automàtic d'activitat (log)
+
+El sistema registra automàticament tota acció rellevant realitzada per qualsevol treballador, sense intervenció manual.
+
+* Per cada acció clau (inici de sessió, recepció d'albarà, creació de lot, canvi d'estat de lot, registre de venda, registre de pH), el sistema desa: treballador que l'ha realitzada, tipus d'acció i data/hora exactes.
+* El log és de només lectura; cap treballador pot editar ni eliminar les entrades del log.
+* El log és consultable des de la secció "Activitat" amb filtres per treballador, data i tipus d'acció.
+* Aquesta informació és indispensable per a les inspeccions sanitàries.
+
+== Requisits no funcionals
+
+[cols="1,4", options="header"]
+|===
+| Codi | Descripció
+
+| RNF01
+| **Usabilitat en entorn hostil:** La interfície ha de tenir botons grans i contrastats per ser usada ràpidament a l'obrador (entorn amb farina i humitat). La prioritat és la usabilitat per sobre de l'estètica.
+
+| RNF02
+| **Multiplataforma:** L'aplicació principal és per a dispositius mòbils Android. Ha d'existir també una versió o accés web per a PC, amb més detall i informació que la versió mòbil. No és necessària versió per a iOS.
+
+| RNF03
+| **Multiidioma:** El sistema ha d'estar disponible en castellà (per defecte) i català. Els noms propis de productes no es traduiran.
+
+| RNF04
+| **Retenció de dades:** Les dades s'han d'emmagatzemar al núvol de manera indefinida. L'aplicació ha de mantenir un historial mínim de 5 mesos accessible localment.
+
+| RNF05
+| **Mode offline bàsic:** El sistema ha de permetre registrar dades si hi ha talls puntuals de connexió Wi-Fi, sincronitzant-se automàticament quan es recuperi la connexió.
+
+| RNF06
+| **Imatge corporativa:** El logotip de la pastisseria Saint Honoré ha d'estar integrat a l'aplicació. La empresa ja disposa de logotip i imatge corporativa propis.
+|===
+
+== Definicions i nomenclatura
+
+[glossary]
+Lot:: Conjunt d'ingredients rebuts en una mateixa entrega, identificat pel número de lot del proveïdor.
+Lot d'emergència:: Lot registrat manualment sense albarà associat, per a compres puntuals fora dels proveïdors habituals.
+Albarà:: Document físic obligatori del proveïdor per cada entrega. A final de mes es transforma en factura.
+Article:: Matèria primera o ingredient identificat dins del sistema, associat a un únic proveïdor.
+Producte Final:: El pa o producte elaborat després del procés de forn.
+Proveïdor:: Subministrador extern de matèries primeres.
+pH:: Mesura obligatòria de control sanitari de l'aigua, que s'ha de registrar cada 2-3 dies.
+Client:: Negoci o particular que rep productes finals de la panificadora.
+FIFO:: First In, First Out. Criteri d'ús de lots: primer s'utilitzen els lots rebuts abans o els que caduca aviat.
+
+== Especificacions de negoci
+
+* **Obligatorietat documental:** Tot lot entrant ve obligatòriament amb el seu albarà, el qual s'utilitza a final de mes per a facturació. No s'escanejarà la matèria primera física.
+* **Exclusivitat de proveïdor:** Un article determinat (ex. farina de força) només pot tenir un únic proveïdor assignat.
+* **Estructura d'entrega:** Un sol albarà pot contenir diversos lots de diferents articles.
+* **Relació N:M (Producció):** Un lot d'un ingredient pot servir per generar molts productes finals. Un producte final utilitza diversos lots a la vegada (lot de farina, lot de rent, etc.).
+* **Relació N:M (Vendes):** Un producte final pot ser venut a diversos clients. Un client pot rebre diversos productes finals.
+* **Canvi d'estats manual:** El pas d'un lot de l'estat "Rebut" a "Iniciat" o "Finalitzat" el fa l'operari manualment. Quan s'inicia un lot nou d'una mateixa matèria primera, el sistema marca automàticament l'anterior com a Finalitzat.
+* **Lògica FIFO:** El sistema suggerirà sempre l'ús del lot més antic o amb la data de caducitat més propera.
+* **Lots d'emergència:** Les compres puntuals a supermercats o proveïdors no habituals es registren manualment sense albarà.
+* **Conservació de dades:** Les dades no s'esborren mai. Es conserva un historial mínim de 5 mesos per complir les inspeccions sanitàries.
+
+== Guions per actors
+
+Al sistema EasyTraza s'ha optat per simplificar els rols per agilitzar la feina a l'obrador, tal com va sol·licitar el client. Tots els treballadors comparteixen la mateixa interfície i permisos.
+
+=== Actor: Treballador (Operari / Responsable)
+
+*Descripció:* Qualsevol empleat de la panificadora. Comparteixen la mateixa interfície i els mateixos permisos per garantir la màxima rapidesa operativa.
+
+*Guió d'accions (RF associats):*
+
+* Iniciar sessió al sistema i donar d'alta nous companys (RF01, RF02).
+* Escanejar albarans amb la càmera, validar les dades OCR i confirmar-les (RF03, RF04, RF05).
+* Introduir albarans manualment si no és possible fer-ne foto (RF06).
+* Gestionar articles, proveïdors i clients del catàleg (RF07, RF08, RF16).
+* Recepcionar lots des d'un albarà confirmat (RF09).
+* Registrar lots d'emergència sense albarà (RF10).
+* Iniciar, finalitzar i canviar l'estat dels lots amb botons (RF11, RF12, RF13).
+* Consultar la suggerència FIFO per decidir quin lot obrir (RF14).
+* Vincular lots als productes finals elaborats (RF15).
+* Registrar vendes i entregues als clients (RF17).
+* Consultar la traçabilitat ascendent i descendent (RF18, RF19).
+* Gestionar incidències sanitàries i obtenir la llista de clients afectats (RF20).
+* Registrar la mesura de pH quan salti el recordatori (RF21).
+* Atendre les alertes de caducitat periòdiques (RF25).
+* Generar informes mensuals i exportar-los a PDF (RF27, RF28).
+
+_Nota: els logs d'activitat (RF29), els recordatoris de pH (RF22, RF23) i les alertes de caducitat en recepció (RF24) són automàtics; el sistema els genera sense intervenció de l'usuari._
+
+== Fora de l'abast del projecte
+
+Els següents punts han estat explícitament descartats pel client i no es desenvoluparan:
+
+* Automatització de comandes a proveïdors.
+* Gestió d'al·lèrgens.
+* Control d'hores dels treballadors.
+* Versió per a iPhone / iOS.
+* Autenticació mitjançant contrasenya.
+* Gestió d'inventari per unitats.
+* Enviament automàtic de correus o missatges als clients (l'avís es fa sempre per telèfon).
+* Extensió a la pastisseria en aquesta fase inicial (només panificadora).
+* Requisits especials d'accessibilitat per a daltonisme o discapacitat visual.
+* Escaneig de la matèria primera física (el número de lot consta a l'albarà).
+
+== Investigació d'eines d'OCR al núvol
+
+Per complir amb el requisit d'extreure automàticament les dades dels albarans s'han investigat dues solucions d'OCR integrables en Android:
+
+=== 1. Google ML Kit (Text Recognition API)
+
+* **Funcionalitats:** Reconeixement de text en temps real directament des de la càmera. Reconeix múltiples idiomes i estructura el text en blocs i línies.
+* **Condicions d'ús i preu:** És gratuït (On-device). No té costos recurrents ni límits d'API, ideal per funcionar sense dependre constantment de la xarxa.
+* **Integració:** S'integra nativament amb Kotlin i Android Studio mitjançant llibreries de Gradle. És ideal per al mode offline.
+
+=== 2. Amazon Textract (AWS)
+
+* **Funcionalitats:** Servei al núvol molt avançat per extreure dades de documents escanejats, dissenyat per entendre taules i formularis complexos com albarans.
+* **Condicions d'ús i preu:** Pertany a AWS. El "Free Tier" permet analitzar fins a 1.000 pàgines al mes gratis el primer any.
+* **Integració:** Es comunica mitjançant el backend de Spring Boot, que processa la imatge enviada des de l'app. Requereix connexió constant.
+
+*Conclusió:* Per al prototip d'EasyTraza, la millor opció inicial és **Google ML Kit** pel seu cost zero i el seu funcionament local, evitant problemes si cau el Wi-Fi de l'obrador.
+
+== Diagrames del Sistema
+
+=== Diagrama de Casos d'Ús
+
+_Nota: S'han utilitzat colors per diferenciar les funcionalitats del frontend mòbil (Blau), frontend web (Verd) i automàtiques (Groc)._
+
+[mermaid]
+....
+flowchart LR
+    classDef mobile fill:#d9edf7,stroke:#31708f,stroke-width:2px;
+    classDef web fill:#dff0d8,stroke:#3c763d,stroke-width:2px;
+    classDef auto fill:#fcf8e3,stroke:#8a6d3b,stroke-width:2px,stroke-dasharray: 5 5;
+
+    Actor([Treballador / Operari])
+
+    subgraph EasyTraza
+        UC1(Iniciar sessió / Gestió) ::: mobile
+        UC2(Escanejar Albarà) ::: mobile
+        UC3(Extracció OCR) ::: auto
+        UC4(Editar dades) ::: mobile
+        UC5(Actualitzar estat Lot) ::: mobile
+        UC6(Lot emergència manual) ::: mobile
+        UC7(Suggerència FIFO) ::: auto
+        UC8(Registre manual pH) ::: mobile
+        UC9(Avís automàtic pH / Caducitat) ::: auto
+        UC10(Log d'activitat) ::: auto
+        UC11(Traçabilitat i Incidències) ::: web
+        UC12(Informes i PDF) ::: web
+    end
+
+    Actor --> UC1
+    Actor --> UC2
+    UC2 -.->|include| UC3
+    Actor --> UC4
+    Actor --> UC5
+    UC5 -.->|trigger| UC7
+    Actor --> UC6
+    Actor --> UC8
+    UC9 -.->|trigger| Actor
+    UC10 -.->|registra| UC5
+    UC10 -.->|registra| UC2
+    Actor --> UC11
+    Actor --> UC12
+....
+
+=== Diagrama Entitat-Relació (E-R)
+
+_Versió interactiva a FigJam (permisos donats a dam2m@copernic.cat):_ +
+https://www.figma.com/board/vt1dzHnPvrmfg0SN5nZwQX/EasyTraza-%E2%80%93-Diagrama-E-R
+
+=== Diagrama d'Arquitectura
+
+_Versió interactiva a FigJam (permisos donats a dam2m@copernic.cat):_ +
+https://www.figma.com/board/Oyhs6E0oHgaBulW922qeAE/EasyTraza-%E2%80%93-Diagrama-d-Arquitectura
+
+== Disseny de la Base de Dades
+
+A partir del diagrama E-R i dels requisits recollits a les actes de reunió, s'ha dissenyat un model de base de dades relacional que permet gestionar la traçabilitat completa de les matèries primeres, els productes finals, els clients i els registres de control sanitari.
+
+Aquest model té com a objectiu garantir que es pugui:
+
+* Identificar cada article o matèria primera rebuda.
+* Relacionar cada albarà amb el proveïdor corresponent.
+* Registrar els lots rebuts (incloent lots d'emergència sense albarà) i el seu estat.
+* Vincular els lots amb els productes finals elaborats.
+* Registrar les vendes als clients i poder-los contactar en cas d'incidència.
+* Controlar els registres de pH de l'aigua.
+* Conèixer quin usuari ha fet cada operació (log d'activitat).
+
+[cols="2,2,3,3", options="header"]
+|===
+| Taula | Camp | Tipus de dada | Restriccions
+
+| **USUARI**
+| id_usuari | INT | PK, Auto-incremental
+| | nom | VARCHAR(100) | NOT NULL
+
+| **PROVEIDOR**
+| id_proveidor | INT | PK, Auto-incremental
+| | nom_comercial | VARCHAR(150) | NOT NULL, UNIQUE
+| | contacte | VARCHAR(100) | NULLABLE
+| | observacions | TEXT | NULLABLE
+
+| **ARTICLE**
+| id_article | INT | PK, Auto-incremental
+| | nom_article | VARCHAR(150) | NOT NULL
+| | unitat_mesura | VARCHAR(20) | NOT NULL
+| | id_proveidor | INT | FK → PROVEIDOR, NOT NULL
+
+| **CLIENT**
+| id_client | INT | PK, Auto-incremental
+| | nom | VARCHAR(150) | NOT NULL
+| | telefon | VARCHAR(20) | NULLABLE
+| | comanda_habitual | TEXT | NULLABLE
+| | observacions | TEXT | NULLABLE
+
+| **ALBARA**
+| id_albara | INT | PK, Auto-incremental
+| | data_recepcio | DATE | NOT NULL
+| | url_document | VARCHAR(255) | NOT NULL
+| | id_proveidor | INT | FK → PROVEIDOR, NOT NULL
+| | id_usuari_recepcio | INT | FK → USUARI, NOT NULL
+
+| **LOT**
+| id_lot | INT | PK, Auto-incremental
+| | num_lot_proveidor | VARCHAR(100) | NOT NULL
+| | data_caducitat | DATE | NOT NULL
+| | estat | ENUM('REBUT','INICIAT','FINALITZAT','ENTREGAT','RETORNAT') | NOT NULL, DEFAULT 'REBUT'
+| | es_emergencia | BOOLEAN | NOT NULL, DEFAULT FALSE
+| | id_albara | INT | FK → ALBARA, NULLABLE (NULL si és lot d'emergència)
+| | id_article | INT | FK → ARTICLE, NOT NULL
+| | observacions | TEXT | NULLABLE
+
+| **PRODUCTE_FINAL**
+| id_producte | INT | PK, Auto-incremental
+| | nom_elaboracio | VARCHAR(150) | NOT NULL
+| | percent_aigua | DECIMAL(5,2) | NOT NULL
+
+| **LOT_PRODUCTE** (N:M)
+| id_lot | INT | PK Composta, FK → LOT
+| | id_producte | INT | PK Composta, FK → PRODUCTE_FINAL
+| | quantitat | DECIMAL(8,2) | NOT NULL
+
+| **VENDA**
+| id_venda | INT | PK, Auto-incremental
+| | id_producte | INT | FK → PRODUCTE_FINAL, NOT NULL
+| | id_client | INT | FK → CLIENT, NOT NULL
+| | data_venda | DATE | NOT NULL
+| | quantitat | DECIMAL(8,2) | NOT NULL
+
+| **REGISTRE_PH**
+| id_registre | INT | PK, Auto-incremental
+| | valor_ph | DECIMAL(4,2) | NOT NULL
+| | data_mesura | DATETIME | NOT NULL
+| | id_usuari | INT | FK → USUARI, NOT NULL
+| | id_lot | INT | FK → LOT, NULLABLE
+
+| **LOT_HISTORIAL**
+| id_historial | INT | PK, Auto-incremental
+| | id_lot | INT | FK → LOT, NOT NULL
+| | id_usuari | INT | FK → USUARI, NOT NULL
+| | accio | VARCHAR(50) | NOT NULL
+| | data_accio | DATETIME | NOT NULL
+
+|===
+
+=== Relacions principals
+
+* Un **proveïdor** pot subministrar diversos **articles**.
+* Un **proveïdor** pot generar diversos **albarans**.
+* Un **albarà** pot contenir diversos **lots**.
+* Cada **lot** pertany a un únic **article**. Pot no tenir albarà associat si és un lot d'emergència.
+* Un **lot** pot utilitzar-se en diversos **productes finals** (N:M via LOT_PRODUCTE).
+* Un **producte final** pot estar elaborat amb diversos **lots**.
+* Un **producte final** pot vendre's a diversos **clients** (N:M via VENDA).
+* Un **client** pot rebre diversos **productes finals**.
+* El **telefon** del client és clau per poder-lo contactar en cas d'incidència sanitària.
+* Cada **registre de pH** es fa per un **usuari** i, opcionalment, es pot associar a un **lot**.
+* Cada acció rellevant sobre un lot queda guardada a **LOT_HISTORIAL** (log d'activitat obligatori per RF09).
+
+=== Justificació del model
+
+* Permet identificar ràpidament l'origen d'un lot defectuós a partir del número de lot del proveïdor.
+* Facilita saber en quins productes s'ha utilitzat un lot concret i quins clients els han rebut.
+* El camp `es_emergencia` a LOT permet registrar compres puntuals sense albarà sense trencar la integritat del model.
+* El camp `observacions` a CLIENT, PROVEIDOR i LOT cobreix la necessitat de notes lliures expressada pel client.
+* El camp `comanda_habitual` a CLIENT permet registrar la cesta tipus de cada client.
+* El camp `telefon` a CLIENT és indispensable per generar la llista de contacte en incidències.
+* LOT_HISTORIAL cobreix el RF09 (log d'activitat) de forma desacoblada, sense afectar la lògica de negoci principal.
+* Manté la informació històrica sense esborrats, amb suport per a consultes de anys anteriors des del núvol.
+
+== Disseny d'interfícies d'usuari i navegació (Mockups)
+
+Els prototips s'han elaborat amb Figma. Els permisos de lectura/edició s'han donat a dam2m@copernic.cat.
+
+* *Prototip Android (mòbil):* https://www.figma.com/design/JQWjMs49QAUgN0FlKr4Trd/Pantalla-android
+* *Prototip Desktop (web):* https://www.figma.com/design/w2PvPsi0ToDwjaEOCV9IBn/pantallas-desktop
+
+*Flux de navegació:*
+
+1. **Pantalla de Login (RF01):** Selecció d'usuari per llista (estil Netflix), sense contrasenya. Versió mòbil i desktop.
+2. **Dashboard:** Vista principal amb alertes pendents (pH, caducitats) i accés directe a "Escanejar albarà", "Nou lot d'emergència" i "Llista de Lots".
+3. **Escàner (Càmera OCR) (RF03):** Pantalla per capturar l'albarà del proveïdor.
+4. **Validació i Edició (RF05):** Pantalla on es bolquen les dades llegides per l'OCR per confirmar-les o editar-les manualment.
+5. **Gestió de Lots (RF11-RF14):** Llista de lots actius amb botons d'estat i suggerència FIFO destacada.
+6. **Traçabilitat / Incidències (RF18-RF20):** Pantalla per introduir un codi de lot i llistar automàticament els productes finals i clients afectats amb el seu telèfon.
+7. **Informes (RF27-RF28):** Generació i exportació a PDF dels resums mensuals.
+
+== Planificació inicial
+
+La planificació del projecte s'ha organitzat a GitLab mitjançant tres _Milestones_ (Sprint 1, Sprint 2 i Sprint 3), cadascuna amb les seves _Issues_ assignades i dates límit corresponents.
+
+== Estat del projecte
+
+Projecte acadèmic desenvolupat dins del CFGS DAM (2DAM) curs 2025-2026. +
+Data de lliurament prevista: 29 de maig de 2026.
+
+== Autor
+
+* Hamza Rourou

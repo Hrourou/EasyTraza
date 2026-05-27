@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>EasyTraza - Trazabilidad de Lote</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-container": "#bb5808", "on-secondary-container": "#783603",
+                        "secondary": "#934b19", "on-surface": "#1e1b13",
+                        "surface-container": "#f5edde", "secondary-container": "#ffa26a",
+                        "surface-container-low": "#fbf3e4", "on-surface-variant": "#564338",
+                        "surface-container-highest": "#e9e2d3", "on-primary": "#ffffff",
+                        "primary": "#974400", "on-error": "#ffffff", "surface": "#fff8ef",
+                        "error-container": "#ffdad6", "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff", "outline-variant": "#ddc1b3",
+                    },
+                    fontFamily: {
+                        "headline": ["Lexend"], "body": ["Lexend"], "label": ["Lexend"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Lexend', sans-serif; min-height: 100dvh; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex overflow-x-hidden relative">
+
+    <div th:replace="~{fragments/navbar :: menu-lateral('lotes')}"></div>
+
+    <main class="flex-1 md:ml-80 flex flex-col min-h-screen transition-all duration-300">
+        <div class="p-6 md:p-8 lg:px-16 lg:py-8 max-w-7xl mx-auto w-full flex-1 flex flex-col">
+            
+            <div class="mb-8 flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
+                <div>
+                    <h1 class="text-4xl lg:text-5xl font-black text-on-surface tracking-tighter mb-2" th:text="#{trace.title}">Trazabilidad de Lote</h1>
+                    <p class="text-lg text-on-surface-variant max-w-2xl" th:text="#{trace.subtitle}">Auditoría de producción y destino de este lote de materia prima.</p>
+                </div>
+                <a th:href="@{/lotes}" class="flex items-center gap-2 px-6 py-3 rounded-xl bg-surface-container-highest text-primary font-bold hover:bg-surface-container transition-colors">
+                    <span class="material-symbols-outlined">arrow_back</span> <span th:text="#{trace.back_lots}">Volver a Lotes</span>
+                </a>
+            </div>
+
+            <div class="bg-surface-container-low rounded-3xl p-8 mb-10 border border-outline-variant/30 shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2" th:classappend="${lote.estat.name() == 'EN_ESTOC' ? 'bg-primary' : (lote.estat.name() == 'OBERT' ? 'bg-amber-500' : 'bg-stone-400')}"></div>
+                
+                <div class="flex flex-col lg:flex-row justify-between gap-8">
+                    <div class="flex-1">
+                        <span class="text-xs font-bold text-secondary uppercase tracking-widest mb-1 block" th:text="#{lots.filters.lot_code}">Código de Lote</span>
+                        <h2 class="text-4xl font-black text-on-surface tracking-tight mb-6" th:text="${lote.idLot}">L-000</h2>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-secondary mb-1" th:text="#{lots.filters.raw_material}">Materia Prima</p>
+                                <p class="font-bold text-on-surface text-lg leading-tight" th:text="${lote.materiaPrimera?.nom ?: #messages.msg('lots.card.unknown_mat')}">Materia Prima</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-secondary mb-1" th:text="#{trace.card.provider}">Proveedor</p>
+                                <p class="font-bold text-on-surface text-lg leading-tight" th:text="${lote.albara?.proveidor?.nom ?: #messages.msg('lots.card.no_provider')}">Proveedor</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 lg:max-w-xs flex flex-col justify-center gap-6 border-t lg:border-t-0 lg:border-l border-outline-variant/30 pt-6 lg:pt-0 lg:pl-8">
+                        <div>
+                            <p class="text-[10px] uppercase font-bold text-secondary mb-1" th:text="#{trace.status.current}">Estado Actual</p>
+                            <div th:if="${lote.estat.name() == 'EN_ESTOC'}" class="inline-flex bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider items-center gap-2 border border-green-200">
+                                <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span> <span th:text="#{lots.filters.status_stock}">En Stock</span>
+                            </div>
+                            <div th:if="${lote.estat.name() == 'OBERT'}" class="inline-flex bg-amber-50 text-amber-700 px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider items-center gap-2 border border-amber-200">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> <span th:text="#{lots.filters.status_open}">Abierto</span>
+                            </div>
+                            <div th:if="${lote.estat.name() == 'ACABAT'}" class="inline-flex bg-stone-100 text-stone-500 px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider items-center gap-2 border border-stone-300">
+                                <span class="w-2.5 h-2.5 rounded-full bg-stone-400"></span> <span th:text="#{lots.filters.status_closed}">Acabado</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-secondary mb-1" th:text="#{trace.dates.open}">Fecha Apertura</p>
+                                <p class="font-bold text-on-surface" th:text="${lote.dataObertura != null ? #temporals.format(lote.dataObertura, 'dd/MM/yyyy') : '-'}">-</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-secondary mb-1" th:text="#{trace.dates.close}">Fecha Finalización</p>
+                                <p class="font-bold text-on-surface" th:text="${lote.dataAcabament != null ? #temporals.format(lote.dataAcabament, 'dd/MM/yyyy') : '-'}">-</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 border-t border-outline-variant/30 pt-4">
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-secondary mb-1" th:text="#{trace.users.init}">Iniciado por</p>
+                                <p class="font-bold text-on-surface" th:text="${lote.usuariIniciador != null ? lote.usuariIniciador.nom : '-'}">-</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-secondary mb-1" th:text="#{trace.users.end}">Finalizado por</p>
+                                <p class="font-bold text-on-surface" th:text="${lote.usuariFinalitzador != null ? lote.usuariFinalitzador.nom : (lote.estat.name() == 'OBERT' ? #messages.msg('trace.users.active') : '-')}">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(liniesTracabilitat)}" class="bg-surface-container p-10 rounded-3xl text-center border-2 border-dashed border-outline-variant">
+                <span class="material-symbols-outlined text-6xl text-primary/40 mb-4">info</span>
+                <h3 class="text-xl font-bold text-on-surface mb-2" th:text="#{trace.empty.title}">Aquest lot encara no ha estat utilitzat en cap producció.</h3>
+                <p class="text-secondary opacity-80" th:if="${lote.estat.name() == 'EN_ESTOC'}" th:text="#{trace.empty.stock}">El lote se encuentra actualmente en stock cerrado.</p>
+                <p class="text-secondary opacity-80" th:if="${lote.estat.name() != 'EN_ESTOC'}" th:text="#{trace.empty.no_albarans}">No se han registrado albaranes de clientes en el rango de fechas de este lote.</p>
+            </div>
+
+            <div th:if="${!#lists.isEmpty(liniesTracabilitat)}" class="bg-white rounded-3xl shadow-sm border border-outline-variant/20 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-surface-container-highest border-b border-outline-variant/30">
+                                <th class="py-5 px-6 font-bold text-sm text-primary uppercase tracking-wider whitespace-nowrap" th:text="#{trace.table.product}">Producte fabricat</th>
+                                <th class="py-5 px-6 font-bold text-sm text-primary uppercase tracking-wider whitespace-nowrap" th:text="#{trace.table.quantity}">Quantitat fabricada</th>
+                                <th class="py-5 px-6 font-bold text-sm text-primary uppercase tracking-wider whitespace-nowrap" th:text="#{trace.table.client}">Client</th>
+                                <th class="py-5 px-6 font-bold text-sm text-primary uppercase tracking-wider whitespace-nowrap" th:text="#{trace.table.id}">Identificador d'albarà</th>
+                                <th class="py-5 px-6 font-bold text-sm text-primary uppercase tracking-wider whitespace-nowrap" th:text="#{trace.table.date}">Data d'albarà</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-outline-variant/10">
+                            <tr th:each="linia : ${liniesTracabilitat}" class="hover:bg-surface-container-lowest/50 transition-colors">
+                                <td class="py-4 px-6">
+                                    <div class="font-bold text-on-surface" th:text="${linia.producte?.nom}">Producto</div>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <div class="font-medium text-secondary" th:text="${linia.quantitat}">0</div>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <div class="font-bold text-on-surface" th:text="${linia.albaraClient?.client?.nom}">Cliente</div>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <div class="font-medium text-on-surface-variant font-mono text-sm bg-surface-container-low px-2 py-1 rounded inline-block" th:text="'ALB-' + ${#temporals.format(linia.albaraClient?.dataProduccio, 'ddMM-HHmm')}">ID</div>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <div class="font-medium text-on-surface" th:text="${#temporals.format(linia.albaraClient?.dataProduccio, 'dd/MM/yyyy HH:mm')}">Fecha</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+</body>
+</html>

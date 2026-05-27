@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>EasyTraza - Gestión de Lotes</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-container": "#bb5808", "on-secondary-container": "#783603",
+                        "secondary": "#934b19", "on-surface": "#1e1b13",
+                        "surface-container": "#f5edde", "secondary-container": "#ffa26a",
+                        "surface-container-low": "#fbf3e4", "on-surface-variant": "#564338",
+                        "surface-container-highest": "#e9e2d3", "on-primary": "#ffffff",
+                        "primary": "#974400", "on-error": "#ffffff", "surface": "#fff8ef",
+                        "error-container": "#ffdad6", "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff", "outline-variant": "#ddc1b3",
+                    },
+                    fontFamily: {
+                        "headline": ["Lexend"], "body": ["Lexend"], "label": ["Lexend"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Lexend', sans-serif; min-height: 100dvh; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex overflow-x-hidden relative">
+
+    <div th:replace="~{fragments/navbar :: menu-lateral('lotes')}"></div>
+
+    <main class="flex-1 md:ml-80 flex flex-col min-h-screen transition-all duration-300">
+        <div class="p-6 md:p-8 lg:px-16 lg:py-8 max-w-7xl mx-auto w-full flex-1 flex flex-col">
+            
+            <div th:if="${success}" class="bg-green-100 text-green-800 p-4 rounded-xl mb-6 font-bold flex items-center gap-2">
+                <span class="material-symbols-outlined">check_circle</span> <span th:text="${success}"></span>
+            </div>
+            <div th:if="${error}" class="bg-error-container text-on-error-container p-4 rounded-xl mb-6 font-bold flex items-center gap-2">
+                <span class="material-symbols-outlined">error</span> <span th:text="${error}"></span>
+            </div>
+
+            <div class="mb-8 flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
+                <div>
+                    <h1 class="text-4xl lg:text-5xl font-black text-on-surface tracking-tighter mb-2" th:text="#{lots.title}">Gestión de Lotes</h1>
+                    <p class="text-lg text-on-surface-variant max-w-2xl" th:text="#{lots.subtitle}">Supervisión de inventario y trazabilidad de materias primas.</p>
+                </div>
+                <a th:if="${filtreAlbara != null}" th:href="@{/historial-albarans}" class="flex items-center gap-2 px-6 py-3 rounded-xl bg-surface-container-highest text-primary font-bold hover:bg-surface-container transition-colors">
+                    <span class="material-symbols-outlined">arrow_back</span> <span th:text="#{lots.back_albaranes}">Volver a Albaranes</span>
+                </a>
+            </div>
+
+            <section class="bg-surface-container-low rounded-2xl p-6 md:p-8 mb-10 border border-outline-variant/20 shadow-sm">
+                <h3 class="text-xl font-bold text-on-surface mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">filter_list</span> <span th:text="#{lots.filters.title}">Filtros de Trazabilidad</span>
+                </h3>
+                
+                <form id="filtrosForm" th:action="@{/lotes}" method="get" class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                    
+                    <input type="hidden" name="albaraId" th:if="${filtreAlbara != null}" th:value="${filtreAlbara}" />
+
+                    <div class="flex flex-col gap-3">
+                        <label class="text-xs font-bold text-primary uppercase tracking-wider" th:text="#{lots.filters.raw_material}">Materia Prima</label>
+                        <select name="materiaId" class="h-14 bg-surface-container-highest border-none rounded-xl text-on-surface font-medium focus:ring-2 focus:ring-primary px-4 outline-none w-full appearance-none cursor-pointer">
+                            <option value="" th:text="#{lots.filters.raw_material_all}">Todas las materias</option>
+                            <option th:each="mat : ${materies}" th:value="${mat.id}" th:text="${mat.nom}" th:selected="${mat != null and mat.id == filtreMateria}"></option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex flex-col gap-3">
+                        <label class="text-xs font-bold text-primary uppercase tracking-wider" th:text="#{lots.filters.provider}">Proveedor Autorizado</label>
+                        <select name="cif" class="h-14 bg-surface-container-highest border-none rounded-xl text-on-surface font-medium focus:ring-2 focus:ring-primary px-4 outline-none w-full appearance-none cursor-pointer">
+                            <option value="" th:text="#{lots.filters.provider_all}">Todos los proveedores</option>
+                            <option th:each="prov : ${proveidors}" th:value="${prov.cif}" th:text="${prov.nom}" th:selected="${prov != null and prov.cif == filtreCif}"></option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <label class="text-xs font-bold text-primary uppercase tracking-wider" th:text="#{lots.filters.status}">Estado</label>
+                        <select name="estat" class="h-14 bg-surface-container-highest border-none rounded-xl text-on-surface font-medium focus:ring-2 focus:ring-primary px-4 outline-none w-full appearance-none cursor-pointer">
+                            <option value="" th:text="#{lots.filters.status_all}">Todos los estados</option>
+                            <option value="EN_ESTOC" th:selected="${filtreEstat == 'EN_ESTOC'}" th:text="#{lots.filters.status_stock}">En Stock</option>
+                            <option value="OBERT" th:selected="${filtreEstat == 'OBERT'}" th:text="#{lots.filters.status_open}">Abierto</option>
+                            <option value="ACABAT" th:selected="${filtreEstat == 'ACABAT'}" th:text="#{lots.filters.status_closed}">Acabado</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <label class="text-xs font-bold text-primary uppercase tracking-wider" th:text="#{lots.filters.lot_code}">Código de Lote</label>
+                        <input name="codiLot" type="text" th:value="${filtreCodiLot}" th:placeholder="#{lots.filters.lot_code_placeholder}" class="h-14 bg-surface-container-highest border-none rounded-xl text-on-surface font-medium focus:ring-2 focus:ring-primary px-4 outline-none w-full" />
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <label class="text-xs font-bold text-primary uppercase tracking-wider" th:text="#{lots.filters.date_from}">Fecha Entrada (Desde)</label>
+                        <input name="dataEntradaDesde" type="date" th:value="${filtreDataEntradaDesde}" class="h-14 bg-surface-container-highest border-none rounded-xl text-on-surface font-medium focus:ring-2 focus:ring-primary px-4 outline-none w-full cursor-pointer" />
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <label class="text-xs font-bold text-primary uppercase tracking-wider" th:text="#{lots.filters.date_to}">Fecha Entrada (Hasta)</label>
+                        <input name="dataEntradaHasta" type="date" th:value="${filtreDataEntradaHasta}" class="h-14 bg-surface-container-highest border-none rounded-xl text-on-surface font-medium focus:ring-2 focus:ring-primary px-4 outline-none w-full cursor-pointer" />
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <label class="text-xs font-bold text-primary uppercase tracking-wider" th:text="#{lots.filters.sort_by}">Ordenar por</label>
+                        <select name="ordenCampo" class="h-14 bg-surface-container-highest border-none rounded-xl text-on-surface font-medium focus:ring-2 focus:ring-primary px-4 outline-none w-full appearance-none cursor-pointer">
+                            <option value="materiaPrimera.nom" th:selected="${ordenCampo == 'materiaPrimera.nom'}" th:text="#{lots.filters.raw_material}">Materia Prima</option>
+                            <option value="albara.proveidor.nom" th:selected="${ordenCampo == 'albara.proveidor.nom'}" th:text="#{lots.filters.provider}">Proveedor</option>
+                            <option value="estat" th:selected="${ordenCampo == 'estat'}" th:text="#{lots.filters.status}">Estado</option>
+                            <option value="idLot" th:selected="${ordenCampo == 'idLot'}" th:text="#{lots.filters.lot_code}">Código de Lote</option>
+                            <option value="albara.dataRecepcio" th:selected="${ordenCampo == 'albara.dataRecepcio'}" th:text="#{lots.card.entry_date}">Fecha de Entrada</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <label class="text-xs font-bold text-primary uppercase tracking-wider" th:text="#{lots.filters.sort_dir}">Orden</label>
+                        <select name="ordenDireccion" class="h-14 bg-surface-container-highest border-none rounded-xl text-on-surface font-medium focus:ring-2 focus:ring-primary px-4 outline-none w-full appearance-none cursor-pointer">
+                            <option value="asc" th:selected="${ordenDireccion == 'asc'}" th:text="#{lots.filters.sort_dir_asc}">Ascendente (A-Z / Menor-Mayor)</option>
+                            <option value="desc" th:selected="${ordenDireccion == 'desc'}" th:text="#{lots.filters.sort_dir_desc}">Descendente (Z-A / Mayor-Menor)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex gap-4 md:col-span-2">
+                        <button type="submit" class="h-14 flex-1 bg-primary text-on-primary rounded-xl font-bold text-lg hover:opacity-90 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+                            <span class="material-symbols-outlined">search</span> <span th:text="#{lots.btn.apply}">Aplicar</span>
+                        </button>
+                        <a th:href="@{/lotes}" class="h-14 w-14 bg-surface-container-highest text-on-surface-variant rounded-xl hover:bg-surface-container transition-colors flex items-center justify-center" th:title="#{lots.btn.clear}">
+                            <span class="material-symbols-outlined">mop</span>
+                        </a>
+                    </div>
+                </form>
+            </section>
+
+
+
+            <div th:if="${#lists.isEmpty(lotes)}" class="bg-surface-container-highest p-10 rounded-3xl text-center border-2 border-dashed border-outline-variant">
+                <span class="material-symbols-outlined text-6xl text-on-surface-variant mb-4">inventory_2</span>
+                <h3 class="text-xl font-bold text-on-surface mb-2" th:text="#{lots.empty.title}">No se encontraron lotes</h3>
+                <p class="text-on-surface-variant" th:text="#{lots.empty.subtitle}">Prueba a cambiar los filtros de búsqueda.</p>
+            </div>
+
+            <section class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                
+                <article th:each="lote : ${lotes}" 
+                    th:data-id="${lote.idLot}" th:data-unitats="${lote.unitats}" th:data-estat="${lote.estat}" th:data-materia="${lote.materiaPrimera?.id}" th:data-proveidor="${lote.albara?.proveidor?.cif}"
+                    class="bg-surface-container-lowest rounded-3xl p-8 flex flex-col gap-6 ring-1 ring-outline-variant/30 relative overflow-hidden group hover:shadow-xl transition-shadow lote-card">
+                    
+                    <div class="absolute top-0 left-0 w-full h-2" th:classappend="${lote.estat.name() == 'EN_ESTOC' ? 'bg-primary' : (lote.estat.name() == 'OBERT' ? 'bg-amber-500' : 'bg-stone-400')}"></div>
+                    
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-xs font-bold text-secondary uppercase tracking-widest mb-1 block" th:text="#{lots.filters.lot_code}">Código de Lote</span>
+                            <h4 class="text-3xl font-black text-on-surface tracking-tight" th:text="${lote.idLot}">001</h4>
+                        </div>
+                        <div th:if="${lote.estat.name() == 'EN_ESTOC'}" class="bg-green-50 text-green-700 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 border border-green-200">
+                            <span class="w-2 h-2 rounded-full bg-green-500"></span> <span th:text="#{lots.filters.status_stock}">En Stock</span>
+                        </div>
+                        <div th:if="${lote.estat.name() == 'OBERT'}" class="bg-amber-50 text-amber-700 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 border border-amber-200">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span> <span th:text="#{lots.filters.status_open}">Abierto</span>
+                        </div>
+                        <div th:if="${lote.estat.name() == 'ACABAT'}" class="bg-stone-100 text-stone-500 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 border border-stone-300">
+                            <span class="w-2 h-2 rounded-full bg-stone-400"></span> <span th:text="#{lots.filters.status_closed}">Acabado</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 py-4">
+                        <div class="bg-surface-container-low p-4 rounded-2xl">
+                            <p class="text-[10px] uppercase font-bold text-secondary mb-1" th:text="#{lots.filters.raw_material}">Materia Prima</p>
+                            <p class="font-bold text-on-surface leading-tight" th:text="${lote.materiaPrimera?.nom ?: #messages.msg('lots.card.unknown_mat')}">Harina Integral</p>
+                        </div>
+                        <div class="bg-surface-container-low p-4 rounded-2xl">
+                            <p class="text-[10px] uppercase font-bold text-secondary mb-1" th:text="#{lots.filters.provider}">Proveedor</p>
+                            <p class="font-bold text-on-surface leading-tight" th:text="${lote.albara?.proveidor?.nom ?: #messages.msg('lots.card.no_provider')}">Molinos Norte</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-end mt-auto pt-2">
+                        <div>
+                            <p class="text-[10px] uppercase font-bold text-secondary mb-1" th:text="#{lots.filters.status}">Estado</p>
+                            <p class="text-2xl font-black" th:classappend="${lote.estat.name() == 'EN_ESTOC' ? 'text-green-700' : (lote.estat.name() == 'OBERT' ? 'text-amber-600' : 'text-stone-400')}" th:text="${lote.estat.name() == 'EN_ESTOC' ? #messages.msg('lots.filters.status_stock') : (lote.estat.name() == 'OBERT' ? #messages.msg('lots.filters.status_open') : #messages.msg('lots.filters.status_closed'))}">En Stock</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] uppercase font-bold text-secondary mb-1" th:text="#{lots.card.entry_date}">Fecha Entrada</p>
+                            <p class="font-semibold text-on-surface" th:text="${lote.albara?.dataRecepcio}">12 Oct 2023</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap justify-end gap-2 pt-4 border-t border-outline-variant/20 mt-2">
+                        <a th:href="@{/lotes/tracabilitat/{proveidorCif}/{idLot}(proveidorCif=${lote.proveidorCif}, idLot=${lote.idLot})}" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary font-bold hover:bg-primary hover:text-white transition-colors text-sm flex-1 md:flex-none justify-center">
+                            <span class="material-symbols-outlined text-sm">troubleshoot</span> <span th:text="#{lots.btn.traceability}">Trazabilidad</span>
+                        </a>
+                        <button type="button" onclick="openEditModal(this.closest('.lote-card'))" class="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-surface-container text-secondary font-bold hover:bg-primary hover:text-white transition-colors text-sm flex-1 md:flex-none">
+                            <span class="material-symbols-outlined text-sm">edit</span> <span th:text="#{lots.btn.modify}">Modificar</span>
+                        </button>
+                        <a th:href="@{/lotes/eliminar/{proveidorCif}/{idLot}(proveidorCif=${lote.proveidorCif}, idLot=${lote.idLot})}" 
+                           th:onclick="'return confirm(\'' + #{lots.delete.confirm} + ' ' + this.dataset.id + #{lots.delete.confirm_suffix} + '\');'"
+                           th:data-id="${lote.idLot}"
+                           class="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-error-container text-error font-bold hover:bg-error hover:text-white transition-colors text-sm flex-1 md:flex-none">
+                            <span class="material-symbols-outlined text-sm">delete</span> <span th:text="#{lots.btn.delete}">Eliminar</span>
+                        </a>
+                    </div>
+                    
+                </article>
+                
+            </section>
+        </div>
+    </main>
+
+    <!-- MODAL EDITAR LOTE -->
+    <div id="editModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-black/50 backdrop-blur-sm transition-opacity">
+        <div class="bg-surface w-full max-w-lg max-h-[90dvh] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col relative">
+            <div class="p-8 pb-4 flex justify-between items-start">
+                <div class="space-y-1">
+                    <h2 class="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-secondary" th:text="#{lots.modal.edit.subtitle}">Modificar</h2>
+                    <h3 id="editModalTitle" class="text-3xl font-black text-on-surface tracking-tight" th:text="#{lots.modal.edit.title}">Editar Lote</h3>
+                </div>
+                <button type="button" onclick="closeEditModal()" class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container text-secondary hover:bg-error-container hover:text-error transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="px-8 pb-8 flex-1 overflow-y-auto">
+                <form id="editForm" method="post" class="space-y-6 mt-4">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-secondary px-2 uppercase tracking-wider" th:text="#{lots.filters.raw_material}">Materia Prima</label>
+                        <select id="edit_materia" name="materiaId" required class="w-full h-14 px-6 bg-surface-container-low border-none rounded-xl font-medium focus:ring-2 focus:ring-primary appearance-none cursor-pointer">
+                            <option th:each="mat : ${materies}" th:value="${mat.id}" th:text="${mat.nom}"></option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-secondary px-2 uppercase tracking-wider" th:text="#{lots.filters.provider}">Proveedor</label>
+                        <select id="edit_proveidor" name="nouProveidorCif" required class="w-full h-14 px-6 bg-surface-container-low border-none rounded-xl font-medium focus:ring-2 focus:ring-primary appearance-none cursor-pointer">
+                            <option th:each="prov : ${proveidors}" th:value="${prov.cif}" th:text="${prov.nom}"></option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-secondary px-2 uppercase tracking-wider" th:text="#{lots.form.units}">Unidades (sacos/cajas)</label>
+                        <input id="edit_unitats" name="unitats" type="number" required class="w-full h-14 px-6 bg-surface-container-low border-none rounded-xl font-medium focus:ring-2 focus:ring-primary" />
+                    </div>
+
+                    <div class="pt-6 flex gap-4">
+                        <button type="button" onclick="closeEditModal()" class="flex-1 h-16 bg-surface-container-highest text-secondary font-bold text-lg rounded-xl hover:bg-[#ddc1b3] transition-colors" th:text="#{lots.btn.cancel}">Cancelar</button>
+                        <button type="submit" class="flex-[2] h-16 bg-primary text-white font-bold text-lg rounded-xl shadow-lg hover:opacity-90 flex items-center justify-center gap-3">
+                            <span class="material-symbols-outlined">save</span> <span th:text="#{lots.btn.save_changes}">Guardar Cambios</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <nav class="md:hidden bg-[#F5E6D3] border-t border-stone-200 fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 shadow-2xl">
+        <a class="flex flex-col items-center justify-center text-stone-600 p-3 flex-1" th:href="@{/historial-albarans}">
+            <span class="material-symbols-outlined mb-1 text-2xl">receipt_long</span>
+        </a>
+        <a class="flex flex-col items-center justify-center bg-[#974400] text-white rounded-2xl p-3 mb-2 flex-1 shadow-lg" th:href="@{/lotes}">
+            <span class="material-symbols-outlined mb-1 text-2xl" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-stone-600 p-3 flex-1" th:href="@{/recepcio}">
+            <span class="material-symbols-outlined mb-1 text-2xl">add_circle</span>
+        </a>
+    </nav>
+
+    <script th:inline="javascript">
+    function openEditModal(card) {
+        const modal = document.getElementById('editModal');
+        const idLot = card.dataset.id;
+        const proveidorCif = card.dataset.proveidor || '';
+        document.getElementById('editModalTitle').innerText = [[#{lots.modal.edit.title}]] + ' ' + idLot;
+        document.getElementById('editForm').action = '/lotes/actualizar/' + proveidorCif + '/' + idLot;
+        document.getElementById('edit_materia').value = card.dataset.materia || '';
+        document.getElementById('edit_proveidor').value = proveidorCif;
+        document.getElementById('edit_unitats').value = card.dataset.unitats || '';
+
+        modal.classList.remove('hidden');
+    }
+    function closeEditModal() {
+        document.getElementById('editModal').classList.add('hidden');
+    }
+    </script>
+</body>
+</html>

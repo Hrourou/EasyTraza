@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>EasyTraza - Informe de Vendes</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-container": "#bb5808", "on-secondary-container": "#783603",
+                        "secondary": "#934b19", "on-surface": "#1e1b13",
+                        "surface-container": "#f5edde", "secondary-container": "#ffa26a",
+                        "surface-container-low": "#fbf3e4", "on-surface-variant": "#564338",
+                        "surface-container-highest": "#e9e2d3", "on-primary": "#ffffff",
+                        "primary": "#974400", "on-error": "#ffffff", "surface": "#fff8ef",
+                        "error-container": "#ffdad6", "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff", "outline-variant": "#ddc1b3",
+                    },
+                    fontFamily: {
+                        "headline": ["Lexend"], "body": ["Lexend"], "label": ["Lexend"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Lexend', sans-serif; min-height: 100dvh; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+        /* Animated gradient border for KPI card */
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .kpi-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 2px;
+            background: linear-gradient(135deg, #974400, #ffa26a, #974400, #ffa26a);
+            background-size: 300% 300%;
+            animation: shimmer 4s ease infinite;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+
+        /* Subtle pulse for the KPI number */
+        @keyframes countUp {
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .kpi-number {
+            animation: countUp 0.5s ease-out;
+        }
+
+        /* Chart container glow */
+        .chart-glow {
+            box-shadow: 0 0 40px -10px rgba(151, 68, 0, 0.12),
+                        0 10px 30px -5px rgba(151, 68, 0, 0.08);
+        }
+
+        /* Custom select styling */
+        .custom-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='%23974400' viewBox='0 0 256 256'%3E%3Cpath d='M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.2rem;
+            padding-right: 3rem;
+        }
+
+        /* Fade-in for chart area */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.6s ease-out both;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex overflow-x-hidden relative">
+
+    <div th:replace="~{fragments/navbar :: menu-lateral('informe')}"></div>
+
+    <!-- Main Content -->
+    <main class="flex-1 md:ml-80 flex flex-col min-h-screen transition-all duration-300" id="main-content">
+        <div class="p-6 md:p-8 lg:px-16 lg:py-8 max-w-7xl mx-auto w-full flex-1 flex flex-col">
+
+            <!-- Header -->
+            <div class="mb-8 fade-in">
+                <h1 class="text-4xl lg:text-5xl font-black text-on-surface tracking-tighter mb-2" th:text="#{report.title}">Informe de Vendes</h1>
+                <p class="text-lg text-on-surface-variant max-w-2xl" th:text="#{report.subtitle}">Anàlisi visual de les unitats venudes per dia durant el mes seleccionat.</p>
+            </div>
+
+            <!-- Filters Row -->
+            <div class="mb-8 flex flex-col sm:flex-row gap-4 fade-in" style="animation-delay: 0.1s;">
+                
+                <!-- Month/Year Selector -->
+                <div class="flex-1 min-w-[220px]">
+                    <label for="selectMes" class="block text-sm font-bold text-secondary uppercase tracking-wider mb-2">
+                        <span class="material-symbols-outlined text-[18px] align-middle mr-1" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+                        <span th:text="#{report.filter.month}">Mes / Any</span>
+                    </label>
+                    <select id="selectMes" class="custom-select w-full bg-surface-container-lowest border-2 border-outline-variant/40 rounded-2xl px-5 py-3.5 text-on-surface font-semibold text-base focus:ring-2 focus:ring-primary focus:border-primary transition-all hover:border-primary/50 cursor-pointer">
+                        <!-- Options populated by JS -->
+                    </select>
+                </div>
+
+                <!-- Product Selector -->
+                <div class="flex-1 min-w-[220px]">
+                    <label for="selectProducte" class="block text-sm font-bold text-secondary uppercase tracking-wider mb-2">
+                        <span class="material-symbols-outlined text-[18px] align-middle mr-1" style="font-variation-settings: 'FILL' 1;">bakery_dining</span>
+                        <span th:text="#{report.filter.product}">Producte</span>
+                    </label>
+                    <select id="selectProducte" class="custom-select w-full bg-surface-container-lowest border-2 border-outline-variant/40 rounded-2xl px-5 py-3.5 text-on-surface font-semibold text-base focus:ring-2 focus:ring-primary focus:border-primary transition-all hover:border-primary/50 cursor-pointer">
+                        <option value="" th:text="#{report.filter.product_all}">Tots els productes</option>
+                        <option th:each="p : ${productes}" th:value="${p.id}" th:text="${p.nom}"></option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- KPI Card -->
+            <div class="mb-8 fade-in" style="animation-delay: 0.2s;">
+                <div class="kpi-card bg-gradient-to-br from-surface-container-lowest to-surface-container-low rounded-3xl p-6 sm:p-8 flex items-center gap-6">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center shadow-lg shadow-primary/25 shrink-0">
+                        <span class="material-symbols-outlined text-white text-3xl sm:text-4xl" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-secondary uppercase tracking-widest mb-1" th:text="#{report.kpi.total_units}">Total unitats venudes aquest mes</p>
+                        <p class="text-4xl sm:text-5xl font-black text-on-surface kpi-number" id="kpiTotal">—</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Container -->
+            <div class="flex-1 fade-in" style="animation-delay: 0.3s;">
+                <div class="bg-surface-container-lowest rounded-3xl chart-glow border border-outline-variant/20 p-4 sm:p-6 lg:p-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1;">bar_chart</span>
+                            </div>
+                            <div>
+                                <h2 class="font-bold text-lg text-on-surface" id="chartTitle" th:text="#{report.chart.title}">Vendes diàries</h2>
+                                <p class="text-sm text-on-surface-variant" id="chartSubtitle" th:text="#{report.chart.loading}">Carregant dades...</p>
+                            </div>
+                        </div>
+                        <!-- Live indicator -->
+                        <div class="flex items-center gap-2 bg-green-50 px-3 py-1.5 rounded-full">
+                            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                            <span class="text-xs font-bold text-green-700 uppercase tracking-wider">Live</span>
+                        </div>
+                    </div>
+                    <div class="relative" style="height: clamp(300px, 45vh, 500px);">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script th:inline="javascript">
+        // ═══════════════════════════════════════════════════════════
+        // 1. POPULATE MONTH SELECTOR (last 12 months)
+        // ═══════════════════════════════════════════════════════════
+        const selectMes = document.getElementById('selectMes');
+        const selectProducte = document.getElementById('selectProducte');
+        const kpiTotal = document.getElementById('kpiTotal');
+        const chartSubtitle = document.getElementById('chartSubtitle');
+
+        const monthNames = [
+            [[#{report.js.month.1}]], [[#{report.js.month.2}]], [[#{report.js.month.3}]], [[#{report.js.month.4}]], [[#{report.js.month.5}]], [[#{report.js.month.6}]],
+            [[#{report.js.month.7}]], [[#{report.js.month.8}]], [[#{report.js.month.9}]], [[#{report.js.month.10}]], [[#{report.js.month.11}]], [[#{report.js.month.12}]]
+        ];
+
+        (function populateMonths() {
+            const now = new Date();
+            for (let i = 0; i < 12; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const opt = document.createElement('option');
+                opt.value = `${y}-${m}`;
+                opt.textContent = `${monthNames[d.getMonth()]} ${y}`;
+                selectMes.appendChild(opt);
+            }
+        })();
+
+        // ═══════════════════════════════════════════════════════════
+        // 2. CHART.JS INITIALIZATION
+        // ═══════════════════════════════════════════════════════════
+        const ctx = document.getElementById('salesChart').getContext('2d');
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(151, 68, 0, 0.25)');
+        gradient.addColorStop(0.5, 'rgba(255, 162, 106, 0.10)');
+        gradient.addColorStop(1, 'rgba(255, 162, 106, 0.0)');
+
+        const salesChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: [[#{report.js.chart.units_sold}]],
+                    data: [],
+                    borderColor: '#974400',
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#974400',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2.5,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#ffa26a',
+                    pointHoverBorderColor: '#974400',
+                    pointHoverBorderWidth: 3,
+                    fill: true,
+                    tension: 0.35,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(30, 27, 19, 0.92)',
+                        titleFont: { family: 'Lexend', weight: '700', size: 14 },
+                        bodyFont: { family: 'Lexend', weight: '500', size: 13 },
+                        cornerRadius: 12,
+                        padding: 14,
+                        displayColors: false,
+                        callbacks: {
+                            title: function(items) {
+                                return [[#{report.js.tooltip.day}]] + ' ' + items[0].label;
+                            },
+                            label: function(item) {
+                                return item.formattedValue + ' ' + [[#{report.js.tooltip.units}]];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: { family: 'Lexend', weight: '600', size: 12 },
+                            color: '#564338',
+                        },
+                        title: {
+                            display: true,
+                            text: [[#{report.js.axis.day}]],
+                            font: { family: 'Lexend', weight: '700', size: 13 },
+                            color: '#934b19',
+                            padding: { top: 12 }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(221, 193, 179, 0.35)',
+                            drawBorder: false,
+                        },
+                        ticks: {
+                            font: { family: 'Lexend', weight: '600', size: 12 },
+                            color: '#564338',
+                            precision: 0,
+                        },
+                        title: {
+                            display: true,
+                            text: [[#{report.js.axis.units}]],
+                            font: { family: 'Lexend', weight: '700', size: 13 },
+                            color: '#934b19',
+                            padding: { bottom: 12 }
+                        }
+                    }
+                },
+                animation: {
+                    duration: 800,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        });
+
+        // ═══════════════════════════════════════════════════════════
+        // 3. FETCH DATA & UPDATE CHART
+        // ═══════════════════════════════════════════════════════════
+        function getDaysInMonth(yearMonth) {
+            const [y, m] = yearMonth.split('-').map(Number);
+            return new Date(y, m, 0).getDate();
+        }
+
+        async function loadData() {
+            const anyMes = selectMes.value;
+            const idProducte = selectProducte.value;
+
+            if (!anyMes) return;
+
+            // Build URL
+            let url = `/informe/vendes?anyMes=${anyMes}`;
+            if (idProducte) url += `&idProducte=${idProducte}`;
+
+            try {
+                const resp = await fetch(url);
+                const data = await resp.json();
+
+                // Create a full-month array (1..N) filled with zeros
+                const totalDays = getDaysInMonth(anyMes);
+                const dailyTotals = new Array(totalDays).fill(0);
+
+                // Fill in the actual data
+                data.forEach(item => {
+                    if (item.dia >= 1 && item.dia <= totalDays) {
+                        dailyTotals[item.dia - 1] = item.total;
+                    }
+                });
+
+                // Labels: 1, 2, 3 ... N
+                const labels = Array.from({ length: totalDays }, (_, i) => String(i + 1));
+
+                // Update chart
+                salesChart.data.labels = labels;
+                salesChart.data.datasets[0].data = dailyTotals;
+                salesChart.update('default');
+
+                // Update KPI
+                const totalUnitats = dailyTotals.reduce((acc, v) => acc + v, 0);
+                kpiTotal.textContent = totalUnitats.toLocaleString('ca-ES') + ' u';
+                kpiTotal.classList.remove('kpi-number');
+                void kpiTotal.offsetWidth; // force reflow
+                kpiTotal.classList.add('kpi-number');
+
+                // Update subtitle
+                const [y, m] = anyMes.split('-').map(Number);
+                const productText = idProducte
+                    ? selectProducte.options[selectProducte.selectedIndex].text
+                    : [[#{report.js.all_products}]];
+                chartSubtitle.textContent = `${monthNames[m - 1]} ${y} · ${productText}`;
+
+            } catch (err) {
+                console.error('Error carregant dades:', err);
+                chartSubtitle.textContent = [[#{report.js.error_loading}]];
+                kpiTotal.textContent = '—';
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // 4. EVENT LISTENERS
+        // ═══════════════════════════════════════════════════════════
+        selectMes.addEventListener('change', loadData);
+        selectProducte.addEventListener('change', loadData);
+
+        // Initial load
+        loadData();
+    </script>
+</body>
+</html>

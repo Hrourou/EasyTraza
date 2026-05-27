@@ -1,0 +1,428 @@
+= Memòria de Seguiment: Daily Standup
+:imagesdir: imatges
+:toc: left
+:toc-title: Índex de Sprints
+:toclevels: 2
+
+== SPRINT 1
+==== 10/02/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|-
+|Crear connexions client-servidor
+|El temps ajustat per telemedicine tota l’estructura a punt
+|3H
+|===
+
+
+==== 13/02/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Configuració inicial del projecte (Spring Boot, BD)
+|Començar CRUD d’usuaris (entitat, repo, servei)
+|Problemes inicials amb configuració i estructura
+|6H
+|===
+
+
+==== 14/02/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|CRUD d’usuaris (API, validacions i rutes)
+|Fer CRUD de proveïdors 
+|Errors en validacions 
+|2H
+|===
+
+
+==== 15/02/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|CRUD complet de proveïdors (backend + part web)
+|Implementar CRUD de matèries primeres
+|Molta feina de frontend i integració
+|5H
+|===
+
+
+==== 16/02/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|CRUD de matèries primeres 
+|Treballar en RF15 (connexions, configuració, backup...)
+|Temps just
+|4H
+|===
+
+=== Captures board
+
+==== Board inicial
+image:BoardInicial1.png[Board inicial, width=400]
+
+==== Board final
+
+image:BoardFinal1.png[Board final, width=400]
+
+== SPRINT 2
+
+
+==== 17/04/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Treball en backend general
+|Començar RF15 a Android (persistencia d'IP amb DataStore i Retrofit) i rf CRUD producte final
+|Errors de Gradle i problemes amb les versions de minSdk a Android Studio
+|4H
+|===
+
+
+==== 20/04/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Configurar DataStore i interceptors a l'app mòbil
+|Fer l'endpoint /api/ping al Spring Boot i provar la connexió real i acabar rf CRUD producte final
+|L'emulador (10.0.2.2) i els permisos de trànsit HTTP (Cleartext)
+|3H
+|===
+
+
+==== 21/04/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Tancar el RF15 (connexió mòbil-backend OK)
+|Començar funcionalitat OCR d'albarans amb Tesseract
+|Tesseract llegeix molt malament les fotos arrugades, només treu text escombraries
+|5H
+|===
+
+
+==== 22/04/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Proves frustrants netejant imatges per a Tesseract
+|Esborrar Tesseract i implementar IA (Gemini API) amb autocreació de proveïdors
+|Com recollir i netejar el JSON que retorna la IA sense que falli l'app
+|6H
+|===
+
+
+==== 23/04/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Integració d'IA finalitzada i llegint perfecte
+|Fer pantalles del CRUD d'albarans i lots amb filtres i arreglar erros 
+|temps just
+|5H
+|===
+
+=== Captures board
+
+==== Board inicial
+image:BoardInicial2.png[Board inicial, width=400]
+
+==== Board final
+
+image:BoardFinal2.png[Board final, width=400]
+
+== SPRINT 3
+
+==== 27/04/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Pantalles del CRUD d'albarans
+|Connectar càmera del mòbil amb el backend per enviar la imatge a Gemini
+|El Spring Boot falla la connexió (MaxUploadSizeExceededException) amb fotos grans
+|4H
+|===
+
+==== 28/04/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Arreglar límits de Spring Boot i timeouts de Retrofit (60 segons)
+|Modificar backend per acceptar lots repetits sense que doni error
+|Com sumar unitats en lloc de llançar excepció de clau primària
+|3H
+|===
+
+==== 29/04/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|
+|Fer la pantalla mòbil dinàmica per pintar tantes línies com detecti l'OCR
+|temps just
+|5H
+|===
+
+==== 30/04/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Bucle dinàmic de files creat amb èxit
+|Crear endpoints GET al backend i afegir llistes desplegables reals a l'App
+|Avisar a l'usuari si la IA detecta un proveïdor/matèria que no existeix a la BD
+|5H
+|===
+
+==== 02/05/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Desplegables connectats i lògica d'autocreació finalitzada
+|Arreglar RFs del ultim sprint
+|Cap
+|4H
+|===
+
+==== 05/05/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|feat(RF05): Implementació completa del CRUD Albarà de Client #15. S'ha implementat el llistat, creació, edició i eliminació d'albarans de client. 
+|Afegir el botó "Entregar" al llistat de l'albarà i començar a revisar errors visuals del panell HTML
+| possibles errors a les vistes Thymeleaf
+|7H
+|===
+
+
+==== 07/05/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Botó "Entregar" implementat correctament al CRUD d'albarans de client i revisió general del flux complet del RF05
+|Arreglar el panell HTML, millorar la disposició visual i remplazar Registre sanitari a observacions en client
+|Detalls visuals
+|5H
+|===
+
+=== Captures board
+
+==== Board inicial
+image:BoardInicial3.png[Board inicial, width=400]
+
+==== Board final
+
+image:BoardFinal3.png[Board final, width=400]
+
+== SPRINT 4
+
+==== 08/05/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Botó "Entregar" i detalls visuals del panell HTML del client
+|Arreglar bugs a les vistes d'usuaris i començar a mirar com encriptar les contrasenyes (Hash)
+|Com fer el Hash de les contrasenyes a la BD sense trencar el login
+|4H
+|===
+
+
+==== 11/05/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Pujar canvis de vistes UI, implementar el Hash i validacions (BugFix_Usuaris)
+|Començar a barallar-me amb Spring Security per fer l'RF25 (Login) i RF28 (Logout)
+|Spring Security és molt liat d'entendre al principi i dóna errors 403 fàcilment
+|5H
+|===
+
+
+==== 12/05/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Configuració bàsica de Spring Security (Login i Logout)
+|Fer la recuperació de contrasenya via email (RF26) i la pantalla d'editar el perfil (RF27)
+|Com configurar el servidor per enviar emails des de Spring Boot sense problemes
+|6H
+|===
+
+
+==== 13/05/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Acabar i fer els merges de RF25, RF28, RF26 i RF27
+|Crear el DataInitializer de seguretat i fer l'endpoint API (RF29) per identificar-se a l'App tipus Netflix
+|Em preocupava quedar-me sense administrador si s'esborra la BD, però ho solucionaré amb el DataInitializer
+|5H
+|===
+
+
+==== 14/05/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Endpoint per App mòbil i DataInitializer fets
+|Ajustar el prompt de l'OCR de Gemini, bloquejar duplicats a recepció i fer els filtres de lots (RF21 i RF22)
+|L'IA llegia "Saint Honore" en comptes del proveïdor o s'inventava el CIF, ha costat bastant afinar el prompt
+|6H
+|===
+
+=== Captures board
+
+==== Board inicial
+image:BoardInicial4.png[Board inicial, width=400]
+
+==== Board final
+
+image:BoardFinal4.png[Board final, width=400]
+
+== SPRINT 5
+
+==== 15/05/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Ajustos en el prompt de Gemini i filtres de lots.
+|Unificar fragments de Thymeleaf, afegir suport DNI/NIE i protegir la integritat referencial.
+|Evitar errors de base de dades (ConstraintViolationException) en esborrar matèries o proveïdors vinculats.
+|6H
+|===
+
+
+==== 18/05/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Unificació de menús amb fragments i alertes de retenció d'estat a la recepció.
+|Desenvolupar l'RF20 (Llistat i endpoints de traçabilitat per lot).
+|Mapejar correctament les consultes per lots sense impactar negativament en el rendiment.
+|5H
+|===
+
+
+==== 19/05/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Tancat el backend i frontend de l'RF20 (Traçabilitat per lot).
+|Implementar l'RF23 (Gràfic mensual evolutiu dinàmic de productes).
+|Sincronitzar les dades agregades per dies del backend amb la llibreria gràfica del frontend.
+|6H
+|===
+
+
+==== 20/05/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|Endpoint i gràfic dinàmic de l'RF23 enllestits.
+|Implementar la funcionalitat opcional RF30 (CRUD comanda) al backend i frontend.
+|Vincular correctament la comanda amb la lògica existent de l'albarà de client.
+|7H
+|===
+
+
+==== 21/05/2026
+
+[cols="1,3,3,3,1", options="header"]
+|===
+|Nom |QUE ES VA FER AHIR |QUE ES FARA AVUI |PREOCUPACIONS QUE ES TENEN |HORES TREBALLADES
+
+|HAMZA
+|CRUD de comandes finalitzat.
+|Persistir l'operari iniciador/finalitzador de lots al backend i connectar la sessió des d'Android.
+|Sincronitzar el DataStore d'Android (Email/NIF) amb els nous camps de la base de datos sense trencar la compatibilitat.
+|6H
+|===
+
+=== Captures board
+
+==== Board inicial
+image:BoardInicial5.png[Board inicial, width=400]
+
+==== Board final
+
+image:BoardFinal5.png[Board final, width=400]

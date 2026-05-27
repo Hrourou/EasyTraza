@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>EasyTraza - Recepción de Albarán</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-container": "#bb5808", "on-secondary-container": "#783603",
+                        "secondary": "#934b19", "on-surface": "#1e1b13",
+                        "surface-container": "#f5edde", "secondary-container": "#ffa26a",
+                        "surface-container-low": "#fbf3e4", "on-surface-variant": "#564338",
+                        "surface-container-highest": "#e9e2d3", "on-primary": "#ffffff",
+                        "primary": "#974400", "on-error": "#ffffff", "surface": "#fff8ef",
+                        "error-container": "#ffdad6", "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff", "outline-variant": "#ddc1b3",
+                    },
+                    fontFamily: {
+                        "headline": ["Lexend"], "body": ["Lexend"], "label": ["Lexend"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Lexend', sans-serif; min-height: 100dvh; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex overflow-x-hidden relative">
+
+    <div th:replace="~{fragments/navbar :: menu-lateral('recepcio')}"></div>
+
+    <main class="flex-1 md:ml-80 flex flex-col min-h-screen transition-all duration-300" id="main-content">
+        <div class="p-6 md:p-8 lg:px-16 lg:py-8 max-w-7xl mx-auto w-full flex-1 flex flex-col">
+            
+            <div class="mb-8">
+                <h1 class="text-4xl lg:text-5xl font-black text-on-surface tracking-tighter mb-2" th:text="#{receipt.title}">Recepción de Albarán</h1>
+                <p class="text-lg text-on-surface-variant max-w-2xl" th:text="#{receipt.subtitle}">Registra la entrada de materias primas. Escanea el albarán o añádelas a mano.</p>
+            </div>
+
+            <div th:if="${param.success}" class="bg-green-100 text-green-800 p-4 rounded-xl flex items-center gap-3 mb-8">
+                <span class="material-symbols-outlined">check_circle</span>
+                <p class="font-bold" th:text="#{receipt.success}">¡Albarán y Lotes registrados correctamente en el Stock!</p>
+            </div>
+            <div th:if="${error}" class="bg-error-container text-on-error-container p-4 rounded-xl flex items-center gap-3 mb-8">
+                <span class="material-symbols-outlined">error</span>
+                <p class="font-bold" th:text="${error}"></p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <div class="lg:col-span-8 bg-white rounded-3xl p-8 sm:p-10 shadow-sm border border-outline-variant/20">
+                    <h2 class="text-2xl font-bold text-on-surface mb-8 flex items-center gap-3">
+                        <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">edit_document</span>
+                        <span th:text="#{receipt.section.doc_data}">Datos del Documento</span>
+                    </h2>
+                    
+                    <form id="recepcioForm" th:action="@{/recepcio/save}" th:object="${recepcioDTO}" method="post" class="space-y-8">
+                        <input type="hidden" id="input_foto_albara_url" th:field="*{fotoAlbaraUrl}" />
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-6 border-b border-outline-variant/30">
+                            
+                            <div class="flex flex-col gap-2">
+                                <label class="text-sm font-bold text-secondary uppercase tracking-wider" th:text="#{receipt.form.provider}">Proveedor *</label>
+                                
+                                <div id="proveidor_existent_div" class="relative">
+                                    <select id="input_cif" name="cifProveidor" class="w-full bg-surface-container-highest border-none rounded-xl py-4 pl-4 pr-12 text-on-surface font-medium focus:ring-2 focus:ring-primary appearance-none cursor-pointer" required onchange="verificarOpcionNuevo(this)">
+                                        <option value="" disabled selected th:text="#{receipt.form.provider_placeholder}">Selecciona Proveedor...</option>
+                                        <option value="NOU" class="font-bold text-primary" th:text="#{receipt.form.provider_new}">+ Crear Nuevo Proveedor Manualmente</option>
+                                        <option th:each="prov : ${proveidors}" th:value="${prov.cif}" th:text="${prov.nom + ' - ' + prov.cif}"></option>
+                                    </select>
+                                    <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+                                </div>
+
+                                <div id="proveidor_nou_div" class="hidden flex-col gap-3">
+                                    <div class="p-3 bg-primary/10 border border-primary/20 rounded-xl">
+                                        <p class="text-xs text-primary font-bold flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-sm">factory</span> <span th:text="#{receipt.form.provider_new_hint}">Proveedor Nuevo (Se creará automáticamente)</span>
+                                        </p>
+                                    </div>
+                                    <div class="relative">
+                                        <input type="text" id="input_cif_nou" placeholder="CIF" class="w-full bg-surface-container-highest border-none rounded-xl py-4 px-4 text-on-surface font-bold focus:ring-2 focus:ring-primary uppercase tracking-wider">
+                                        <p id="cif_recepcio_msg" class="text-xs text-error font-bold mt-1 px-2 hidden" th:text="#{receipt.form.cif_invalid}">El CIF/NIF introducido no parece válido.</p>
+                                    </div>
+                                    <input type="text" id="input_nom_nou" name="nomProveidor" th:placeholder="#{receipt.form.provider_name}" class="w-full bg-surface-container-highest border-none rounded-xl py-4 px-4 text-on-surface font-medium focus:ring-2 focus:ring-primary">
+                                    
+                                    <button type="button" onclick="cancelarProveidorNou()" class="text-xs font-bold text-secondary underline text-left mt-1 hover:text-primary" th:text="#{receipt.form.provider_cancel}">Cancelar y seleccionar uno existente</button>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label class="text-sm font-bold text-secondary uppercase tracking-wider" th:text="#{receipt.form.date}">Fecha de Recepción *</label>
+                                <div class="relative">
+                                    <input id="input_fecha" th:field="*{dataRecepcio}" type="date" class="w-full bg-surface-container-highest border-none rounded-xl py-4 px-4 text-on-surface font-medium focus:ring-2 focus:ring-primary cursor-pointer" required/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="contenedor-lotes" class="space-y-6">
+                            <h3 class="text-lg font-bold text-on-surface flex justify-between items-center">
+                                <span th:text="#{receipt.section.lines}">Líneas de Producto</span>
+                                <button type="button" onclick="agregarLinea()" class="text-sm bg-surface-container-highest hover:bg-primary hover:text-white text-secondary py-2 px-4 rounded-full transition-colors flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">add</span> <span th:text="#{receipt.btn.add_line}">Añadir Fila</span>
+                                </button>
+                            </h3>
+
+                            <div th:each="linia, stat : *{liniesLote}" class="fila-lote bg-surface-container-low p-6 rounded-2xl relative border border-transparent transition-all">
+                                <button type="button" onclick="eliminarLinea(this)" class="absolute top-4 right-4 text-error hover:bg-error-container p-1 rounded-full transition-colors">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                                <h4 class="text-xs font-bold text-primary mb-4 uppercase tracking-wider"><span th:text="#{receipt.line.row}">Fila</span> <span class="numero-fila" th:text="${stat.index + 1}">1</span></h4>
+
+                                <div class="flex flex-col gap-2 mb-4">
+                                    <label class="text-sm font-bold text-secondary uppercase tracking-wider" th:text="#{receipt.line.raw_mat}">Materia Prima *</label>
+                                    <div class="relative">
+                                        <select th:name="'liniesLote[' + ${stat.index} + '].materiaPrimeraId'" class="input-materia w-full bg-white border-none rounded-xl py-3 pl-4 pr-12 text-on-surface font-medium focus:ring-2 focus:ring-primary appearance-none cursor-pointer" required>
+                                            <option value="" disabled th:selected="${linia.materiaPrimeraId == null}" th:text="#{receipt.line.raw_mat_placeholder}">Selecciona Materia Prima...</option>
+                                            <option th:each="mat : ${materies}" th:value="${mat.id}" th:text="${mat.nom} + ' - ' + ${mat.descripcio}" th:selected="${mat.id == linia.materiaPrimeraId}"></option>
+                                        </select>
+                                        <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+                                    </div>
+                                    <input type="hidden" th:name="'liniesLote[' + ${stat.index} + '].nomMateriaPrimeraDetectada'" class="input-materia-detectada" value="">
+                                </div>
+
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                    <div class="flex flex-col gap-2">
+                                        <label class="text-sm font-bold text-secondary uppercase tracking-wider" th:text="#{receipt.line.lot}">Lote Fabricante *</label>
+                                        <input th:field="*{liniesLote[__${stat.index}__].idLot}" class="input-lote w-full bg-white border-none rounded-xl py-3 px-4 text-on-surface font-bold focus:ring-2 focus:ring-primary" placeholder="Ej. L-489201" type="text" required/>
+                                    </div>
+                                    <div class="flex flex-col gap-2">
+                                        <label class="text-sm font-bold text-secondary uppercase tracking-wider" th:text="#{receipt.line.units}">Unidades (Sacos/Cajas) *</label>
+                                        <input th:field="*{liniesLote[__${stat.index}__].unitats}" class="input-uds w-full bg-white border-none rounded-xl py-3 px-4 text-on-surface font-bold focus:ring-2 focus:ring-primary text-center" placeholder="0" type="number" min="1" step="1" required onkeydown="return event.key !== ' '"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 flex justify-end pt-6 border-t border-outline-variant/30">
+                            <button type="submit" class="w-full md:w-auto bg-primary hover:opacity-90 text-white font-bold text-xl py-5 px-10 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-4">
+                                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">save</span>
+                                <span th:text="#{receipt.btn.save}">Guardar Albarán</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="lg:col-span-4 flex flex-col gap-8">
+                    <input type="file" id="fileUploader" accept="image/*" class="hidden" onchange="procesarImagenOCR(event)">
+
+                    <div onclick="document.getElementById('fileUploader').click()" id="ocrDropzone" class="bg-surface-container-low rounded-3xl p-8 flex flex-col items-center justify-center text-center min-h-[500px] border-2 border-dashed border-primary hover:bg-surface-container-highest transition-colors cursor-pointer group relative overflow-hidden shadow-sm">
+                        
+                        <!-- Contenedor para la previsualización de la imagen -->
+                        <div id="ocrPreviewContainer" class="hidden absolute inset-0 w-full h-full z-0 bg-surface-container-highest/50">
+                            <img id="ocrPreviewImage" src="" alt="Previsualización" class="w-full h-full object-contain p-2">
+                            <!-- Overlay encima de la imagen para cambiarla -->
+                            <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                <span class="material-symbols-outlined text-white text-4xl mb-2">replay</span>
+                                <span class="text-white font-bold">Cambiar foto</span>
+                            </div>
+                        </div>
+
+                        <div id="ocrIdle" class="flex flex-col items-center relative z-10">
+                            <div class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md">
+                                <span class="material-symbols-outlined text-3xl">document_scanner</span>
+                            </div>
+                            <h3 class="font-bold text-lg text-primary mb-2" th:text="#{receipt.ocr.title}">Escanear Albarán (IA)</h3>
+                            <p class="text-sm text-on-surface-variant" th:text="#{receipt.ocr.subtitle}">Sube una foto y la IA rellenará las filas automáticamente.</p>
+                        </div>
+
+                        <div id="ocrLoading" class="hidden absolute inset-0 flex-col items-center justify-center bg-surface-container-low/90 backdrop-blur-sm z-20">
+                            <span class="material-symbols-outlined text-5xl text-primary animate-spin mb-4">autorenew</span>
+                            <h3 class="font-bold text-lg text-primary animate-pulse" th:text="#{receipt.ocr.loading.title}">Analizando documento...</h3>
+                            <p class="text-sm text-on-surface-variant" th:text="#{receipt.ocr.loading.subtitle}">Extrayendo información clave</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script th:inline="javascript">
+        // --- FUNCIONS AUXILIARS PER AL NOU DISSENY DEL PROVEÏDOR ---
+        function verificarOpcionNuevo(select) {
+            if (select.value === 'NOU') {
+                mostrarProveidorNou();
+            }
+        }
+
+        function mostrarProveidorNou() {
+            document.getElementById('proveidor_existent_div').classList.add('hidden');
+            const selectProveidor = document.getElementById('input_cif');
+            selectProveidor.removeAttribute('name');
+            selectProveidor.removeAttribute('required');
+
+            document.getElementById('proveidor_nou_div').classList.remove('hidden');
+            document.getElementById('proveidor_nou_div').classList.add('flex');
+            
+            const inputCifNou = document.getElementById('input_cif_nou');
+            inputCifNou.setAttribute('name', 'cifProveidor');
+            inputCifNou.setAttribute('required', 'true');
+
+            document.getElementById('input_nom_nou').setAttribute('required', 'true');
+        }
+
+        function cancelarProveidorNou() {
+            document.getElementById('proveidor_nou_div').classList.add('hidden');
+            document.getElementById('proveidor_nou_div').classList.remove('flex');
+            document.getElementById('proveidor_existent_div').classList.remove('hidden');
+            
+            // Retirem el "name" dels inputs ocults perquè no s'enviïn al backend
+            document.getElementById('input_cif_nou').removeAttribute('name');
+            document.getElementById('input_cif_nou').removeAttribute('required');
+            document.getElementById('input_cif_nou').value = '';
+            document.getElementById('input_nom_nou').removeAttribute('required');
+            document.getElementById('input_nom_nou').value = '';
+            document.getElementById('cif_recepcio_msg').classList.add('hidden');
+            document.getElementById('input_cif_nou').classList.remove('ring-2', 'ring-error');
+            
+            // Li tornem a donar el protagonisme al desplegable original
+            const selectCif = document.getElementById('input_cif');
+            selectCif.setAttribute('name', 'cifProveidor');
+            selectCif.setAttribute('required', 'true');
+            selectCif.value = '';
+        }
+
+        // Validación en tiempo real del CIF del nuevo proveedor
+        const inputCifNouDOM = document.getElementById('input_cif_nou');
+        const cifRecepcioMsg = document.getElementById('cif_recepcio_msg');
+        let timeoutCifId;
+        
+        inputCifNouDOM.addEventListener('input', function() {
+            clearTimeout(timeoutCifId);
+            const cifVal = this.value.trim().toUpperCase();
+            
+            if (cifVal.length < 5) {
+                cifRecepcioMsg.classList.add('hidden');
+                this.classList.remove('ring-2', 'ring-error');
+                return;
+            }
+
+            timeoutCifId = setTimeout(async () => {
+                try {
+                    const response = await fetch(`/api/proveidors/validar-cif/${cifVal}`);
+                    if (response.ok) {
+                        const isValid = await response.json();
+                        if (!isValid) {
+                            cifRecepcioMsg.classList.remove('hidden');
+                            inputCifNouDOM.classList.add('ring-2', 'ring-error');
+                        } else {
+                            cifRecepcioMsg.classList.add('hidden');
+                            inputCifNouDOM.classList.remove('ring-error');
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error al validar CIF", error);
+                }
+            }, 500);
+        });
+
+        // --- 1. LÒGICA PER AFEGIR/ESBORRAR FILES MANUALMENT ---
+        function agregarLinea() {
+            const contenedor = document.getElementById('contenedor-lotes');
+            const filas = contenedor.getElementsByClassName('fila-lote');
+            
+            const nuevaFila = filas[0].cloneNode(true);
+            const nuevoIndex = filas.length;
+            
+            nuevaFila.querySelector('.numero-fila').innerText = nuevoIndex + 1;
+            
+            const inputs = nuevaFila.querySelectorAll('select, input');
+            inputs.forEach(input => {
+                const oldName = input.getAttribute('name');
+                if(oldName) {
+                    const newName = oldName.replace(/\[\d+\]/, '[' + nuevoIndex + ']');
+                    input.setAttribute('name', newName);
+                }
+                input.value = '';
+                if(input.tagName === 'SELECT') input.selectedIndex = 0;
+            });
+
+            nuevaFila.style.opacity = '0';
+            contenedor.appendChild(nuevaFila);
+            setTimeout(() => nuevaFila.style.opacity = '1', 10);
+        }
+
+        function eliminarLinea(btn) {
+            const filas = document.getElementsByClassName('fila-lote');
+            if (filas.length > 1) {
+                const fila = btn.closest('.fila-lote');
+                fila.remove();
+                reordenarIndices();
+            } else {
+                alert([[#{receipt.alert.min_lines}]]);
+            }
+        }
+
+        function reordenarIndices() {
+            const filas = document.getElementsByClassName('fila-lote');
+            for (let i = 0; i < filas.length; i++) {
+                filas[i].querySelector('.numero-fila').innerText = i + 1;
+                const inputs = filas[i].querySelectorAll('select, input');
+                inputs.forEach(input => {
+                    const oldName = input.getAttribute('name');
+                    if(oldName) {
+                        const newName = oldName.replace(/\[\d+\]/, '[' + i + ']');
+                        input.setAttribute('name', newName);
+                    }   
+                });
+            }
+        }
+
+        // --- 2. LÒGICA DE L'OCR ---
+        async function procesarImagenOCR(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+
+            // Mostrar la previsualización de la imagen
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('ocrPreviewImage').src = e.target.result;
+                document.getElementById('ocrPreviewContainer').classList.remove('hidden');
+                document.getElementById('ocrDropzone').classList.remove('p-8');
+            };
+            reader.readAsDataURL(file);
+
+            document.getElementById('ocrIdle').classList.add('hidden');
+            document.getElementById('ocrLoading').classList.remove('hidden');
+            document.getElementById('ocrLoading').classList.add('flex');
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/recepcio/ocr', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) throw new Error("Fallada a la lectura OCR");
+
+                const data = await response.json();
+
+                // Guardar la URL de la foto devuelta por el servidor
+                if(data.fotoAlbaraUrl) {
+                    const inputFotoUrl = document.getElementById('input_foto_albara_url');
+                    if (inputFotoUrl) {
+                        inputFotoUrl.value = data.fotoAlbaraUrl;
+                    }
+                }
+
+                // LÒGICA MAGICA DEL PROVEÏDOR (Nou vs Existent)
+                const selectProveidor = document.getElementById('input_cif');
+                const cifDetectado = data.cifProveidor;
+                const nomDetectado = data.nomProveidor || cifDetectado;
+
+                if (cifDetectado) {
+                    let optionExists = Array.from(selectProveidor.options).some(opt => opt.value === cifDetectado);
+
+                    if (optionExists) {
+                        // El proveïdor existeix a la BD: Tanquem els camps nous i bloquegem el select
+                        cancelarProveidorNou();
+                        selectProveidor.value = cifDetectado;
+                    } else {
+                        // El proveïdor NO existeix: Ocultem el select i mostrem els inputs per editar
+                        mostrarProveidorNou();
+                        document.getElementById('input_cif_nou').value = cifDetectado;
+
+                        const inputNomNou = document.getElementById('input_nom_nou');
+                        inputNomNou.value = nomDetectado;
+                    }
+                }
+
+                // DATA DE RECEPCIÓ
+                if(data.dataRecepcio) document.getElementById('input_fecha').value = data.dataRecepcio;
+
+                // LÍNIES DEL LOT
+                if(data.liniesLote && data.liniesLote.length > 0) {
+                    const contenedor = document.getElementById('contenedor-lotes');
+                    
+                    while (contenedor.getElementsByClassName('fila-lote').length > 1) {
+                        contenedor.lastElementChild.remove();
+                    }
+                    
+                    data.liniesLote.forEach((loteInfo, index) => {
+                        if(index > 0) agregarLinea();
+                        
+                        const filaActual = contenedor.getElementsByClassName('fila-lote')[index];
+                        filaActual.querySelector('.input-lote').value = loteInfo.idLot || '';
+                        filaActual.querySelector('.input-uds').value = loteInfo.unitats || '';
+                        
+                        const hiddenInputMateria = filaActual.querySelector('.input-materia-detectada');
+                        const selectInputMateria = filaActual.querySelector('.input-materia');
+                        
+                        if(loteInfo.nomMateriaPrimeraDetectada) {
+                            hiddenInputMateria.value = loteInfo.nomMateriaPrimeraDetectada;
+                            selectInputMateria.removeAttribute('required');
+                            const option = document.createElement("option");
+                            option.text = [[#{receipt.line.raw_mat_detected}]] + loteInfo.nomMateriaPrimeraDetectada + [[#{receipt.line.raw_mat_created}]];
+                            option.value = "";
+                            option.selected = true;
+                            selectInputMateria.add(option, selectInputMateria[0]);
+                        }
+                    });
+                } else {
+                    alert([[#{receipt.alert.ocr_no_lines}]]);
+                }
+
+            } catch (error) {
+                alert([[#{receipt.alert.ocr_error}]]);
+                console.error(error);
+                // Si hubo error, ocultamos la previsualización y restauramos el estado inicial
+                document.getElementById('ocrPreviewContainer').classList.add('hidden');
+                document.getElementById('ocrDropzone').classList.add('p-8');
+                document.getElementById('ocrIdle').classList.remove('hidden');
+            } finally {
+                document.getElementById('ocrLoading').classList.add('hidden');
+                document.getElementById('ocrLoading').classList.remove('flex');
+                document.getElementById('fileUploader').value = '';
+            }
+        }
+
+        // --- 3. RESTAURAR ESTAT EN CAS D'ERROR I AVISAR CANVIS SENSE GUARDAR ---
+        let isDirty = false;
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById('recepcioForm');
+            if (form) {
+                form.addEventListener('input', () => { isDirty = true; });
+                form.addEventListener('change', () => { isDirty = true; });
+                form.addEventListener('submit', () => { isDirty = false; });
+            }
+
+            window.addEventListener('beforeunload', function (e) {
+                if (isDirty) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
+
+            // Recuperar estat del proveïdor si venim d'un error de validació
+            // Injectem els valors del DTO amb Thymeleaf
+            const cifDTO = /*[[${recepcioDTO.cifProveidor}]]*/ '';
+            const nomDTO = /*[[${recepcioDTO.nomProveidor}]]*/ '';
+            
+            if (cifDTO) {
+                const selectCif = document.getElementById('input_cif');
+                // Comprovem si el CIF existeix a les opcions (i no és 'NOU')
+                const optionExists = Array.from(selectCif.options).some(opt => opt.value === cifDTO && opt.value !== 'NOU');
+                
+                if (!optionExists) {
+                    // Era un proveïdor nou!
+                    selectCif.value = 'NOU';
+                    mostrarProveidorNou();
+                    document.getElementById('input_cif_nou').value = cifDTO;
+                    document.getElementById('input_nom_nou').value = nomDTO || '';
+                } else {
+                    // Proveïdor existent
+                    selectCif.value = cifDTO;
+                }
+            }
+            
+            const fotoAlbaraUrlDTO = /*[[${recepcioDTO.fotoAlbaraUrl}]]*/ '';
+            if (fotoAlbaraUrlDTO) {
+                document.getElementById('ocrPreviewImage').src = fotoAlbaraUrlDTO;
+                document.getElementById('ocrPreviewContainer').classList.remove('hidden');
+                const dropzone = document.getElementById('ocrDropzone');
+                if(dropzone) dropzone.classList.remove('p-8');
+                const idle = document.getElementById('ocrIdle');
+                if(idle) idle.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

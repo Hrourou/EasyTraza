@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>EasyTraza - Gestió de Comandes</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-container": "#bb5808", "on-secondary-container": "#783603",
+                        "secondary": "#934b19", "on-surface": "#1e1b13",
+                        "surface-container": "#f5edde", "secondary-container": "#ffa26a",
+                        "surface-container-low": "#fbf3e4", "on-surface-variant": "#564338",
+                        "surface-container-highest": "#e9e2d3", "on-primary": "#ffffff",
+                        "primary": "#974400", "on-error": "#ffffff", "surface": "#fff8ef",
+                        "error-container": "#ffdad6", "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff", "outline-variant": "#ddc1b3",
+                    },
+                    fontFamily: {
+                        "headline": ["Lexend"], "body": ["Lexend"], "label": ["Lexend"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Lexend', sans-serif; min-height: 100dvh; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex overflow-x-hidden relative">
+
+    <div th:replace="~{fragments/navbar :: menu-lateral('comandes')}"></div>
+
+    <main class="flex-1 md:ml-80 flex flex-col min-h-screen transition-all duration-300" id="main-content">
+        <div class="p-6 md:p-8 lg:px-16 lg:py-8 max-w-7xl mx-auto w-full flex-1 flex flex-col">
+            
+            <div class="mb-6 flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
+                <div>
+                    <h1 class="text-4xl lg:text-5xl font-black text-on-surface tracking-tighter mb-2" th:text="#{orders.title}">Comandes</h1>
+                    <p class="text-lg text-on-surface-variant max-w-2xl" th:text="#{orders.subtitle}">Gestiona els encàrrecs anticipats dels clients.</p>
+                </div>
+                <button type="button" onclick="openModal('create')" class="bg-gradient-to-br from-primary to-primary-container text-on-primary h-16 px-8 rounded-2xl flex items-center justify-center gap-3 hover:opacity-90 transition-all shadow-lg shadow-primary/20 hover:-translate-y-1">
+                    <span class="material-symbols-outlined text-2xl">add</span>
+                    <span class="text-lg font-bold" th:text="#{orders.btn.new}">Nova Comanda</span>
+                </button>
+            </div>
+
+            <div th:if="${param.success}" class="bg-green-100 text-green-800 p-4 rounded-2xl mb-6 font-bold flex items-center gap-2 border border-green-200">
+                <span class="material-symbols-outlined">check_circle</span> <span th:text="#{orders.alert.success}">Comanda processada correctament!</span>
+            </div>
+            <div th:if="${error}" class="bg-error-container text-on-error-container p-4 rounded-2xl mb-6 font-bold flex items-center gap-2 border border-error/20">
+                <span class="material-symbols-outlined">warning</span> <span th:text="${error}"></span>
+            </div>
+            <div th:if="${param.error}" class="bg-error-container text-on-error-container p-4 rounded-2xl mb-6 font-bold flex items-center gap-2 border border-error/20">
+                <span class="material-symbols-outlined">warning</span> <span th:text="${param.error[0]}"></span>
+            </div>
+
+            <!-- Buscador -->
+            <div class="relative w-full mb-8">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+                <input id="searchInput" onkeyup="filterComandes()" class="w-full pl-12 pr-4 py-3 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary text-on-surface font-medium transition-all placeholder:text-on-surface-variant/60" th:placeholder="#{orders.search_placeholder}" type="text"/>
+            </div>
+
+            <!-- Tabla de comandes -->
+            <div class="bg-white rounded-3xl shadow-sm border border-outline-variant/20 overflow-hidden">
+                <div th:if="${#lists.isEmpty(comandes)}" class="p-10 text-center">
+                    <span class="material-symbols-outlined text-6xl text-primary/40">shopping_cart</span>
+                    <h3 class="text-2xl font-bold text-on-surface mt-4" th:text="#{orders.empty.title}">Encara no hi ha comandes</h3>
+                    <p class="text-secondary opacity-80 text-lg mt-2" th:text="#{orders.empty.subtitle}">Fes clic a "Nova Comanda" per registrar el primer encàrrec.</p>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(comandes)}" class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-surface-container-highest border-b border-outline-variant/30">
+                                <th class="py-5 px-6 font-bold text-sm text-primary uppercase tracking-wider whitespace-nowrap" th:text="#{orders.table.client}">Client</th>
+                                <th class="py-5 px-6 font-bold text-sm text-primary uppercase tracking-wider whitespace-nowrap" th:text="#{orders.table.date}">Data Comanda</th>
+                                <th class="py-5 px-6 font-bold text-sm text-primary uppercase tracking-wider whitespace-nowrap" th:text="#{orders.table.products}">Productes</th>
+                                <th class="py-5 px-6 font-bold text-sm text-primary uppercase tracking-wider whitespace-nowrap" th:text="#{orders.table.total_units}">Total Uds</th>
+                                <th class="py-5 px-6 font-bold text-sm text-primary uppercase tracking-wider whitespace-nowrap text-center" th:text="#{orders.table.actions}">Accions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-outline-variant/10">
+                            <tr th:each="com : ${comandes}" class="hover:bg-surface-container-lowest/50 transition-colors comanda-row"
+                                th:data-client="${com.client.nom + ' ' + com.client.cognoms}">
+                                <td class="py-4 px-6">
+                                    <div class="font-bold text-on-surface" th:text="${com.client.nom + ' ' + com.client.cognoms}">Client</div>
+                                    <div class="text-xs text-secondary" th:text="${com.client.nif}">NIF</div>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <div class="font-medium text-on-surface" th:text="${#temporals.format(com.dataComanda, 'dd/MM/yyyy')}">Data</div>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <div class="flex flex-wrap gap-1">
+                                        <span th:each="linia : ${com.linies}" class="inline-block bg-surface-container-highest text-secondary text-xs font-bold px-2 py-1 rounded-lg" th:text="${linia.producte.nom + ' x' + linia.quantitat}">Prod</span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <div class="font-bold text-primary text-lg" th:text="${#aggregates.sum(com.linies.![quantitat])}">0</div>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <div class="flex justify-center gap-2">
+                                        <a th:href="@{/comandes/editar(nif=${com.client.nif}, data=${com.dataComanda})}" class="w-10 h-10 bg-surface-container rounded-full flex items-center justify-center text-secondary hover:bg-primary hover:text-white transition-all shadow-sm">
+                                            <span class="material-symbols-outlined text-[20px]">edit</span>
+                                        </a>
+                                        <form th:action="@{/comandes/delete}" method="post" th:data-confirm="#{orders.btn.delete_confirm}" onsubmit="return confirm(this.getAttribute('data-confirm'));">
+                                            <input type="hidden" name="nif" th:value="${com.client.nif}"/>
+                                            <input type="hidden" name="data" th:value="${com.dataComanda}"/>
+                                            <button type="submit" class="w-10 h-10 bg-surface-container rounded-full flex items-center justify-center text-error hover:bg-error hover:text-white transition-all shadow-sm">
+                                                <span class="material-symbols-outlined text-[20px]">delete</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL CREAR/EDITAR COMANDA -->
+    <div id="comandaModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-black/50 backdrop-blur-sm transition-opacity">
+        <div class="bg-surface w-full max-w-3xl max-h-[90dvh] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col relative">
+            
+            <div class="p-8 pb-4 flex justify-between items-start">
+                <div class="space-y-1">
+                    <h2 id="modalSubtitle" class="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-secondary" th:text="#{orders.modal.create.subtitle}">Nou encàrrec</h2>
+                    <h3 id="modalTitle" class="text-3xl font-black text-on-surface tracking-tight" th:text="#{orders.modal.create.title}">Nova Comanda</h3>
+                </div>
+                <button type="button" onclick="closeModal()" class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container text-secondary hover:bg-error-container hover:text-error transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <div class="px-8 pb-8 flex-1 overflow-y-auto">
+                <form id="comandaForm" th:action="@{/comandes/save}" th:object="${comandaDTO}" method="post" class="space-y-6 mt-4" autocomplete="off">
+                    <input type="hidden" th:field="*{edit}" />
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-secondary px-2 uppercase tracking-wider" th:text="#{orders.modal.form.client}">Client *</label>
+                            <div class="relative">
+                                <select id="modal_client" th:field="*{nifClient}" class="w-full h-14 px-6 bg-surface-container-low border-none rounded-xl font-medium focus:ring-2 focus:ring-primary appearance-none cursor-pointer" required>
+                                    <option value="" disabled selected th:text="#{orders.modal.form.client_placeholder}">Selecciona Client...</option>
+                                    <option th:each="cli : ${clients}" th:value="${cli.nif}" th:text="${cli.nom + ' ' + cli.cognoms}"></option>
+                                </select>
+                                <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-secondary px-2 uppercase tracking-wider" th:text="#{orders.modal.form.date}">Data Comanda *</label>
+                            <input id="modal_data" th:field="*{dataComanda}" type="date" class="w-full h-14 px-6 bg-surface-container-low border-none rounded-xl font-medium focus:ring-2 focus:ring-primary cursor-pointer" required/>
+                        </div>
+                    </div>
+
+                    <!-- Líneas de producto dinámicas -->
+                    <div id="modal-linies" class="space-y-4">
+                        <h4 class="text-lg font-bold text-on-surface flex justify-between items-center">
+                            <span th:text="#{orders.modal.section.products}">Productes encomanats</span>
+                            <button type="button" onclick="addLiniaModal()" class="text-sm bg-surface-container-highest hover:bg-primary hover:text-white text-secondary py-2 px-4 rounded-full transition-colors flex items-center gap-2">
+                                <span class="material-symbols-outlined text-sm">add</span> <span th:text="#{orders.modal.btn.add_product}">Afegir Producte</span>
+                            </button>
+                        </h4>
+
+                        <div th:each="linia, stat : *{linies}" class="modal-linia bg-surface-container-low p-5 rounded-2xl relative border border-transparent transition-all">
+                            <button type="button" onclick="removeLiniaModal(this)" class="absolute top-3 right-3 text-error hover:bg-error-container p-1 rounded-full transition-colors">
+                                <span class="material-symbols-outlined text-[20px]">close</span>
+                            </button>
+                            <div class="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-secondary px-2 uppercase tracking-wider" th:text="#{orders.modal.line.product}">Producte *</label>
+                                    <div class="relative">
+                                        <select th:field="*{linies[__${stat.index}__].producteId}" class="w-full h-12 px-4 bg-white border-none rounded-xl font-medium focus:ring-2 focus:ring-primary appearance-none cursor-pointer" required>
+                                            <option value="" disabled selected th:text="#{orders.modal.line.product_placeholder}">Selecciona...</option>
+                                            <option th:each="prod : ${productes}" th:value="${prod.id}" th:text="${prod.nom}"></option>
+                                        </select>
+                                        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">expand_more</span>
+                                    </div>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-xs font-bold text-secondary px-2 uppercase tracking-wider" th:text="#{orders.modal.line.quantity}">Quantitat *</label>
+                                    <input th:field="*{linies[__${stat.index}__].quantitat}" type="number" min="1" required placeholder="0" class="w-full h-12 px-4 bg-white border-none rounded-xl font-bold focus:ring-2 focus:ring-primary text-center"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 flex gap-4">
+                        <button type="button" onclick="closeModal()" class="flex-1 h-16 bg-surface-container-highest text-secondary font-bold text-lg rounded-xl hover:bg-[#ddc1b3] transition-colors" th:text="#{orders.modal.btn.cancel}">Cancel·lar</button>
+                        <button type="submit" class="flex-[2] h-16 bg-primary text-white font-bold text-lg rounded-xl shadow-lg hover:opacity-90 flex items-center justify-center gap-3">
+                            <span class="material-symbols-outlined">save</span>
+                            <span id="btnSubmitText" th:text="#{orders.modal.create.btn}">Guardar Comanda</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+    function openModal(mode) {
+        const modal = document.getElementById('comandaModal');
+        const mainContent = document.getElementById('main-content');
+        modal.classList.remove('hidden');
+        mainContent.classList.add('blur-sm');
+
+        if (mode === 'create') {
+            document.getElementById('modalSubtitle').innerText = [[#{orders.modal.create.subtitle}]];
+            document.getElementById('modalTitle').innerText = [[#{orders.modal.create.title}]];
+            document.getElementById('btnSubmitText').innerText = [[#{orders.modal.create.btn}]];
+            document.getElementById('modal_client').removeAttribute('disabled');
+            const dataInput = document.getElementById('modal_data');
+            dataInput.removeAttribute('readonly');
+            // Prevent selecting a date before today
+            dataInput.setAttribute('min', new Date().toISOString().split('T')[0]);
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('comandaModal').classList.add('hidden');
+        document.getElementById('main-content').classList.remove('blur-sm');
+    }
+
+    function addLiniaModal() {
+        const container = document.getElementById('modal-linies');
+        const linies = container.getElementsByClassName('modal-linia');
+        const template = linies[0].cloneNode(true);
+        const newIndex = linies.length;
+
+        template.querySelectorAll('select, input').forEach(input => {
+            const oldName = input.getAttribute('name');
+            if (oldName) {
+                input.setAttribute('name', oldName.replace(/\[\d+\]/, '[' + newIndex + ']'));
+            }
+            input.value = '';
+        });
+
+        template.style.opacity = '0';
+        container.appendChild(template);
+        setTimeout(() => template.style.opacity = '1', 10);
+    }
+
+    function removeLiniaModal(btn) {
+        const linies = document.getElementsByClassName('modal-linia');
+        if (linies.length > 1) {
+            btn.closest('.modal-linia').remove();
+            reindexLiniesModal();
+        } else {
+            alert([[#{orders.js.alert.min_lines}]]);
+        }
+    }
+
+    function reindexLiniesModal() {
+        const linies = document.getElementsByClassName('modal-linia');
+        for (let i = 0; i < linies.length; i++) {
+            linies[i].querySelectorAll('select, input').forEach(input => {
+                const oldName = input.getAttribute('name');
+                if (oldName) {
+                    input.setAttribute('name', oldName.replace(/\[\d+\]/, '[' + i + ']'));
+                }
+            });
+        }
+    }
+
+    function filterComandes() {
+        const input = document.getElementById('searchInput').value.toLowerCase();
+        document.querySelectorAll('.comanda-row').forEach(row => {
+            const client = row.dataset.client.toLowerCase();
+            row.style.display = client.includes(input) ? '' : 'none';
+        });
+    }
+    </script>
+
+    <!-- Auto-abrir modal en modo edición si hay datos precargados -->
+    <script th:if="${openEditModal}" th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+            const modal = document.getElementById('comandaModal');
+            const mainContent = document.getElementById('main-content');
+            modal.classList.remove('hidden');
+            mainContent.classList.add('blur-sm');
+            document.getElementById('modalSubtitle').innerText = [[#{orders.modal.edit.subtitle}]];
+            document.getElementById('modalTitle').innerText = [[#{orders.modal.edit.title}]];
+            document.getElementById('btnSubmitText').innerText = [[#{orders.modal.edit.btn}]];
+            document.getElementById('modal_client').setAttribute('disabled', 'true');
+            document.getElementById('modal_data').setAttribute('readonly', 'true');
+        });
+    </script>
+
+    <!-- Auto-abrir modal si hay error de validación -->
+    <script th:if="${error != null and !isEdit}">
+        document.addEventListener("DOMContentLoaded", function() {
+            openModal('create');
+        });
+    </script>
+
+</body>
+</html>

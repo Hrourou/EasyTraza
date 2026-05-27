@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">EasyTraza</string>
+
+    <!-- General -->
+    <string name="btn_ok">OK</string>
+    <string name="btn_cancel">Cancelar</string>
+    <string name="btn_back">Volver</string>
+    <string name="btn_home">Inicio</string>
+    <string name="btn_save">Guardar</string>
+    <string name="alert_error">Error</string>
+    <string name="alert_success">¡Éxito!</string>
+    <string name="settings">Ajustes</string>
+
+    <!-- LoginScreen -->
+    <string name="login_who">¿Quién está trabajando?</string>
+    <string name="login_select_profile">Selecciona tu perfil de operador</string>
+    <string name="login_error_profiles">No se ha podido cargar ningún perfil.\nComprueba la conexión con el servidor.</string>
+    <string name="login_pull_retry">↓ Arrastra hacia abajo para reintentar</string>
+    <string name="logo_desc">Logo EasyTraza</string>
+
+    <!-- DashboardScreen -->
+    <string name="dashboard_hello">Hola,</string>
+    <string name="dashboard_btn_receive">Recibir\nAlbarán</string>
+    <string name="dashboard_btn_start_lot">Iniciar\nLote</string>
+    <string name="dashboard_btn_end_lot">Finalizar\nLote</string>
+    <string name="dashboard_btn_logout">Cerrar\nSesión</string>
+
+    <!-- IpScreen -->
+    <string name="ip_system">SISTEMA</string>
+    <string name="ip_title">Configuración del Servidor</string>
+    <string name="ip_desc">Configure la dirección IP del servidor central para establecer la conexión.</string>
+    <string name="ip_label">DIRECCIÓN IP</string>
+    <string name="ip_placeholder">Ej: 192.168.1.50</string>
+    <string name="ip_btn_test">Probar</string>
+
+    <!-- Strings para activity_main.xml (Legacy) -->
+    <string name="hint_ip">Ej: 192.168.1.50</string>
+    <string name="btn_guardar">Guardar</string>
+    <string name="tv_ip_actual">IP Actual:</string>
+
+    <!-- CerrarSesionScreen -->
+    <string name="logout_title">Cerrar Sesión</string>
+    <string name="logout_desc">¿Desea finalizar su sesión de trabajo actual en el sistema de trazabilidad?</string>
+    <string name="logout_btn">CERRAR SESIÓN</string>
+    <string name="logout_btn_back">Volver al Dashboard</string>
+
+    <!-- IniciarLotScreen / FinalitzarLotScreen -->
+    <string name="lot_new_process">NUEVO PROCESO</string>
+    <string name="lot_start_title">Seleccionar Lote</string>
+    <string name="lot_start_desc">Seleccione la materia prima en stock para configurar el inicio.</string>
+    <string name="lot_empty_stock">No hay lotes en stock listos.</string>
+    <string name="lot_prefix">Lote #%1$s</string>
+    <string name="lot_mat_prima">Materia Prima</string>
+    <string name="lot_config">CONFIGURACIÓN</string>
+    <string name="lot_start_config_title">Iniciar Lote</string>
+    <string name="lot_prod_date">Fecha de Producción</string>
+    <string name="lot_to_start">Lote a Iniciar</string>
+    <string name="lot_mat_associated">Materia Prima Asociada</string>
+    <string name="lot_unknown">Desconocida</string>
+    <string name="lot_btn_start">INICIAR PRODUCCIÓN</string>
+    <string name="lot_alert_open_title">Lote anterior detectado</string>
+    <string name="lot_alert_open_desc">Se ha detectado un lote de esta materia prima abierto. ¿Finalizar el anterior e iniciar este?</string>
+    <string name="lot_alert_open_confirm">Cerrar anterior e Iniciar</string>
+
+    <string name="lot_end_process">CIERRE OPERATIVO</string>
+    <string name="lot_end_title">Finalizar Lote</string>
+    <string name="lot_end_desc">Seleccione el lote abierto para proceder a su cierre.</string>
+    <string name="lot_empty_open">No hay ningún lote abierto actualmente.</string>
+    <string name="lot_end_confirm">CONFIRMACIÓN</string>
+    <string name="lot_end_detail">Detalle del Lote</string>
+    <string name="lot_to_end">Lote a Cerrar</string>
+    <string name="lot_btn_end">Finalizar y Cerrar Lote</string>
+
+    <!-- RecepcioScreen -->
+    <string name="rec_title">Recepción de Albarán</string>
+    <string name="rec_desc">Registra la entrada de nueva materia prima.</string>
+    <string name="rec_processing">Procesando imagen...</string>
+    <string name="rec_select">Seleccionar Albarán</string>
+    <string name="rec_select_desc">Sube una foto desde tus archivos.</string>
+    <string name="rec_doc_data">Datos del Documento</string>
+    <string name="rec_prov_cif">CIF Proveedor *</string>
+    <string name="rec_prov_not_found">Ningún proveedor encontrado</string>
+    <string name="rec_prov_registered">✅ Proveedor registrado: %1$s</string>
+    <string name="rec_prov_new">⚠️ CIF no registrado. Rellena el nombre para crearlo.</string>
+    <string name="rec_prov_name_new">Nombre Comercial Nuevo *</string>
+    <string name="rec_date">Fecha (YYYY-MM-DD) *</string>
+    <string name="rec_prod_lines">Líneas de Producto</string>
+    <string name="rec_row">FILA %1$d</string>
+    <string name="rec_mat_not_found">Ninguna materia encontrada</string>
+    <string name="rec_mat_new"> Materia no detectada en BD. Se creará automáticamente.</string>
+    <string name="rec_lot_number">Nº Lote</string>
+    <string name="rec_units">Uds</string>
+    <string name="rec_btn_add_row">+ Añadir otra fila</string>
+    <string name="rec_btn_save">Guardar en Stock</string>
+    <string name="rec_btn_delete">Borrar</string>
+</resources>
